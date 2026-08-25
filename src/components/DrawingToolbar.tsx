@@ -65,7 +65,7 @@ export function calculatePerimeter(coords: number[][]): number {
 }
 
 const POLYGON_COLORS = [
-  '#00E5FF', '#FF3D57', '#FFD700', '#00E676', '#E040FB',
+  '#22D3EE', '#FF3D57', '#FFD700', '#00E676', '#E040FB',
   '#FF6D00', '#40C4FF', '#69F0AE', '#FFAB40', '#7C4DFF',
 ];
 
@@ -115,7 +115,7 @@ export default function DrawingToolbar({
   const [nameValue, setNameValue] = useState('');
   const [copied, setCopied] = useState<string | null>(null);
   const [openGroup, setOpenGroup] = useState<string | null>(null);
-  
+
   const [flash, setFlash] = useState(false);
   const prevCount = useRef(polygons.length);
   const [, setTick] = useState(0);
@@ -158,11 +158,11 @@ export default function DrawingToolbar({
 
   return (
     <div className="pointer-events-auto">
-      <div 
+      <div
         className="w-[280px] bg-black/90 backdrop-blur-xl border rounded-lg overflow-hidden flex flex-col glass-panel transition-all duration-500"
         style={{
-          boxShadow: flash 
-            ? '0 0 20px #00E67666, 0 25px 50px -12px rgba(0,0,0,0.5)' 
+          boxShadow: flash
+            ? '0 0 20px #00E67666, 0 25px 50px -12px rgba(0,0,0,0.5)'
             : '0 25px 50px -12px rgba(0,0,0,0.25)',
           borderColor: flash ? 'var(--alert-green, #00E676)' : 'rgba(255, 255, 255, 0.06)'
         }}
@@ -173,7 +173,7 @@ export default function DrawingToolbar({
             <Pentagon className="w-3.5 h-3.5 text-[var(--cyan-primary)]" />
             <span className="text-[12px] font-mono tracking-[0.2em] text-white/90 font-bold">DRAWING TOOLS</span>
           </div>
-          
+
           <div className="flex items-center justify-between text-[10px] font-mono text-white/50 bg-white/5 rounded px-2 py-1.5 border border-white/[0.04]">
             <div className="flex flex-col">
               <span className="text-[10px] tracking-wider mb-0.5 uppercase">Tracked Area</span>
@@ -256,7 +256,7 @@ export default function DrawingToolbar({
         <div className="flex-1 overflow-y-auto overflow-x-hidden max-h-[280px] styled-scrollbar bg-black/40">
           <AnimatePresence mode="popLayout">
             {polygons.length === 0 && !drawMode ? (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -289,11 +289,11 @@ export default function DrawingToolbar({
                   onClick={() => onSelectPolygon(selectedPolygon === polygon.id ? null : polygon.id)}
                 >
                   {/* Left Color Accent */}
-                  <div 
+                  <div
                     className="absolute left-0 top-0 bottom-0 w-[3px] transition-opacity duration-300"
                     style={{ backgroundColor: polygon.color, opacity: selectedPolygon === polygon.id ? 1 : 0.6 }}
                   />
-                  
+
                   <div className="flex items-center justify-between mb-1.5 pl-1">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                       {editingName === polygon.id ? (
@@ -317,7 +317,7 @@ export default function DrawingToolbar({
                         </span>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center gap-1 flex-shrink-0 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       {onToggleWatch && polygon.geojson.geometry.type === 'Polygon' && (
                         <button
@@ -340,7 +340,7 @@ export default function DrawingToolbar({
                       </button>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center justify-between pl-1 text-[10px] font-mono text-white/40">
                     <div className="flex items-center gap-3">
                       <span className="flex items-center gap-1">
@@ -471,15 +471,15 @@ export default function DrawingToolbar({
         {/* Actions */}
         {polygons.length > 0 && (
           <div className="p-3 border-t border-white/[0.04] flex items-center gap-2 bg-black/60">
-            <button 
-              onClick={onExportGeoJSON} 
+            <button
+              onClick={onExportGeoJSON}
               className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded text-[10px] font-mono tracking-[0.2em] bg-[var(--cyan-primary)]/10 border border-[var(--cyan-primary)]/30 text-[var(--cyan-primary)]/80 hover:text-[var(--cyan-primary)] hover:bg-[var(--cyan-primary)]/20 hover:border-[var(--cyan-primary)]/50 transition"
             >
               <Download className="w-3 h-3" />
               EXPORT GEOJSON
             </button>
-            <button 
-              onClick={onClearAll} 
+            <button
+              onClick={onClearAll}
               className="flex items-center justify-center gap-1.5 px-3 py-2 rounded text-[10px] font-mono tracking-widest bg-[#FF3D57]/10 border border-[#FF3D57]/20 text-[#FF3D57]/60 hover:text-[#FF3D57] hover:bg-[#FF3D57]/20 transition"
             >
               <Trash2 className="w-3 h-3" />

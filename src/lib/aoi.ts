@@ -1,5 +1,5 @@
 /**
- * OSIRIS — Area of Interest analysis
+ * OCULIX — Area of Interest analysis
  *
  * Turns a drawn polygon into an answer to "what is inside this?". Every tracked
  * layer is swept, the hits are grouped by kind, and the result is what the
@@ -59,7 +59,7 @@ interface LayerSpec {
  * adding a layer here is the only step needed to make it selectable.
  */
 export const AOI_LAYERS: LayerSpec[] = [
-  { key: 'commercial_flights', label: 'Commercial aircraft', color: '#00E5FF', labelFields: ['callsign', 'icao24'],
+  { key: 'commercial_flights', label: 'Commercial aircraft', color: '#22D3EE', labelFields: ['callsign', 'icao24'],
     detail: e => [e.model, e.alt ? `${e.alt} m` : null].filter(Boolean).join(' · ') || undefined },
   { key: 'private_flights', label: 'Private aircraft', color: '#76FF03', labelFields: ['callsign', 'icao24'],
     detail: e => e.model || undefined },

@@ -2,7 +2,7 @@ import type { LngLat } from './geo';
 import { circleToRing, haversine, pathLength, polygonArea, rectToRing, ringPerimeter } from './geo';
 
 /**
- * OSIRIS — AOI shape model
+ * OCULIX — AOI shape model
  *
  * Four ways to describe an area, one canonical geometry.
  *
@@ -51,7 +51,7 @@ export interface DrawResult {
 }
 
 const PALETTE = [
-  '#00E5FF', '#FF3D57', '#FFD700', '#00E676', '#E040FB',
+  '#22D3EE', '#FF3D57', '#FFD700', '#00E676', '#E040FB',
   '#FF9800', '#29B6F6', '#AB47BC', '#26A69A', '#EC407A',
 ];
 

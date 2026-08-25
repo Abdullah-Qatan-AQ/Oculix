@@ -4,13 +4,13 @@ import { stealthFetch } from '@/lib/stealthFetch';
 export const dynamic = 'force-dynamic';
 
 /**
- * OSIRIS — Live Conflict Zone Intelligence API
- * 
+ * OCULIX — Live Conflict Zone Intelligence API
+ *
  * Aggregates real-time conflict data from:
  * 1. GDELT GEO 2.0 API — real-time geo-located conflict events
  * 2. GDELT DOC API — article-level conflict reporting with coordinates
  * 3. Known active conflict zones — enriched with live event counts
- * 
+ *
  * All sources are free, no auth required.
  */
 
@@ -40,7 +40,7 @@ interface ConflictEvent {
 
 // Known active conflict zones (anchors — enriched with live data)
 const KNOWN_CONFLICTS = [
-  { id: 'ukraine', label: 'UKRAINE WAR', severity: 'war' as const, lat: 48.5, lng: 31.2, region: 'ukraine', 
+  { id: 'ukraine', label: 'UKRAINE WAR', severity: 'war' as const, lat: 48.5, lng: 31.2, region: 'ukraine',
     description: 'Ongoing Russian invasion of Ukraine — active frontlines across eastern and southern regions.',
     sourceUrl: 'https://liveuamap.com/',
     queries: ['ukraine war', 'ukraine attack', 'ukraine frontline'],
@@ -128,10 +128,10 @@ function parsePointDataCSV(csv: string): ConflictEvent[] {
     const lat = parseFloat(parts[0]);
     const lng = parseFloat(parts[1]);
     if (isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) continue;
-    
+
     const name = (parts[2] || 'Conflict Event').replace(/<[^>]*>/g, '').trim();
     const url = parts[3] || '';
-    
+
     events.push({
       id: `gdelt-pt-${events.length}`,
       lat, lng,
@@ -191,22 +191,22 @@ async function fetchAllLiveConflictData(): Promise<{ events: ConflictEvent[]; ev
           signal: AbortSignal.timeout(8000),
           cache: 'no-store'
         });
-        
+
         if (!res.ok) {
-          console.log(`[OSIRIS] RSS Fetch Failed for ${url}: ${res.status}`);
+          console.log(`[OCULIX] RSS Fetch Failed for ${url}: ${res.status}`);
           return [];
         }
-        
+
         const xml = await res.text();
         const rawItems = xml.split(/<item>/i).slice(1);
-        console.log(`[OSIRIS] RSS ${url} returned ${rawItems.length} items`);
-        
+        console.log(`[OCULIX] RSS ${url} returned ${rawItems.length} items`);
+
         return rawItems.map(rawItem => {
           const item = rawItem.split(/<\/item>/i)[0];
           const titleMatch = item.match(/<title>(.*?)<\/title>/i) || item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/i);
           const linkMatch = item.match(/<link>(.*?)<\/link>/i);
           const descMatch = item.match(/<description>(.*?)<\/description>/i) || item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/i);
-          
+
           if (!titleMatch) return null;
           return {
             title: titleMatch[1].replace(/<[^>]*>/g, '').trim(),
@@ -215,7 +215,7 @@ async function fetchAllLiveConflictData(): Promise<{ events: ConflictEvent[]; ev
           };
         }).filter(Boolean);
       } catch (err) {
-        console.log(`[OSIRIS] RSS Fetch Error for ${url}:`, (err as Error).message);
+        console.log(`[OCULIX] RSS Fetch Error for ${url}:`, (err as Error).message);
         return [];
       }
     });
@@ -227,9 +227,9 @@ async function fetchAllLiveConflictData(): Promise<{ events: ConflictEvent[]; ev
     let eventId = 0;
     for (const item of combinedItems) {
       if (!item) continue;
-      
+
       const searchText = `${item.title} ${item.desc}`.toLowerCase();
-      
+
       for (const zone of KNOWN_CONFLICTS) {
         // Check if any query keywords match
         const matchesZone = zone.queries.some(q => {
@@ -239,7 +239,7 @@ async function fetchAllLiveConflictData(): Promise<{ events: ConflictEvent[]; ev
 
         if (matchesZone) {
           eventsByRegion[zone.id] = (eventsByRegion[zone.id] || 0) + 1;
-          
+
           // Deterministic tiny offset based on eventId so dots don't exactly overlap the anchor
           const offsetLat = (eventId % 5 - 2) * 0.1;
           const offsetLng = ((eventId * 3) % 5 - 2) * 0.1;
@@ -257,12 +257,12 @@ async function fetchAllLiveConflictData(): Promise<{ events: ConflictEvent[]; ev
             type: 'conflict',
             timestamp: new Date().toISOString(),
           });
-          
+
           break; // Match only one zone per news item
         }
       }
     }
-    console.log(`[OSIRIS] Mapped ${allEvents.length} conflict events from RSS.`);
+    console.log(`[OCULIX] Mapped ${allEvents.length} conflict events from RSS.`);
   } catch (e) {
     console.error('OSINT Conflict Fetch Error:', e);
   }
@@ -313,8 +313,8 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error('[OSIRIS] Conflict API error:', error);
-    
+    console.error('[OCULIX] Conflict API error:', error);
+
     // Fallback: return known zones without live enrichment
     const fallbackZones = KNOWN_CONFLICTS.map(zone => ({
       id: zone.id,

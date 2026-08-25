@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 
 /**
- * OSIRIS — Space Weather API
+ * OCULIX — Space Weather API
  * Fetches real-time solar activity from NOAA Space Weather Prediction Center
  * FREE — No API key required
  * Data: Kp index (geomagnetic), solar flares, CME alerts
@@ -39,7 +39,7 @@ export async function GET() {
     else if (kpIndex >= 6) { stormLevel = 'Strong (G3)'; stormColor = '#FF9500'; }
     else if (kpIndex >= 5) { stormLevel = 'Moderate (G2)'; stormColor = '#FFD700'; }
     else if (kpIndex >= 4) { stormLevel = 'Minor (G1)'; stormColor = '#FFD700'; }
-    else if (kpIndex >= 3) { stormLevel = 'Unsettled'; stormColor = '#D4AF37'; }
+    else if (kpIndex >= 3) { stormLevel = 'Unsettled'; stormColor = '#8B5CF6'; }
 
     // Recent alerts
     const alerts: any[] = [];

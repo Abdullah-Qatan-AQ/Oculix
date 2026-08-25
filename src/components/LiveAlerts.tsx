@@ -136,7 +136,7 @@ export default function LiveAlerts({ data, onLocate, onWatchFeed }: LiveAlertsPr
           <span className="gotham-tag gotham-tag--info" style={{ fontSize: '9px', padding: '1px 4px' }}>{BUILTIN_FEEDS.length} FEEDS</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#FF4081] animate-osiris-pulse" />
+          <div className="w-1.5 h-1.5 rounded-full bg-[#FF4081] animate-oculix-pulse" />
           <button onClick={(e) => { e.stopPropagation(); setMaximized(!maximized); if (!expanded && !maximized) setExpanded(true); }} className="p-1.5 -m-0.5 rounded hover:text-white hover:bg-white/10 transition-colors" title={maximized ? "Restore" : "Maximize"}>
             {maximized ? <Minimize2 className="w-3 h-3 text-[var(--text-muted)]" /> : <Maximize2 className="w-3 h-3 text-[var(--text-muted)]" />}
           </button>
@@ -214,10 +214,10 @@ export default function LiveAlerts({ data, onLocate, onWatchFeed }: LiveAlertsPr
                             )}
                           </div>
                           {alert.url && (
-                            <a 
-                              href={alert.url} 
-                              target="_blank" 
-                              rel="noopener noreferrer" 
+                            <a
+                              href={alert.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               className="inline-flex items-center py-1.5 px-1.5 -mx-1 rounded text-[9px] font-mono text-[var(--cyan-primary)] hover:underline hover:bg-[var(--cyan-primary)]/10"
                               onClick={(e) => e.stopPropagation()}
                             >

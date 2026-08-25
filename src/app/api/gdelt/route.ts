@@ -5,7 +5,7 @@ export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
 /**
- * OSIRIS — Real-Time Geopolitical Events (GDELT 2.0 GeoJSON API)
+ * OCULIX — Real-Time Geopolitical Events (GDELT 2.0 GeoJSON API)
  * Source: GDELT Project — completely free, no auth required
  * Replaces the old RSS scraper with actual GDELT geo-coded events.
  */
@@ -42,7 +42,7 @@ export async function GET() {
 
     for (const rawItem of rawItems) {
       const item = rawItem.split(/<\/item>/i)[0]; // get content up to </item>
-      
+
       const titleMatch = item.match(/<title>(.*?)<\/title>/i) || item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/i);
       const linkMatch = item.match(/<link>(.*?)<\/link>/i);
       const descMatch = item.match(/<description>(.*?)<\/description>/i) || item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/i);
@@ -59,7 +59,7 @@ export async function GET() {
       const lng = parseFloat(lngMatch[1]);
       const eventType = typeMatch ? typeMatch[1] : 'UNK';
 
-      // Map GDACS event types to Osiris types. WF and DR used to fall through
+      // Map GDACS event types to Oculix types. WF and DR used to fall through
       // to the 'conflict' default, which is most of the feed — a live sample
       // was 330 wildfires and 12 droughts out of 369 events, all of them
       // reaching the map labelled as conflicts. Unknown types are 'incident'
@@ -92,7 +92,7 @@ export async function GET() {
       headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
     });
   } catch (error) {
-    console.error('[OSIRIS] GDACS fetch error:', error);
+    console.error('[OCULIX] GDACS fetch error:', error);
     return NextResponse.json({ events: [], total: 0, error: 'GDACS unavailable' }, { status: 500 });
   }
 }

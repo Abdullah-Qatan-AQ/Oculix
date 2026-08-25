@@ -8,7 +8,7 @@ const SKYLINE_ITALY: CctvCamera[] = [
   { id: 'sky-it-colosseum', lat: 41.8902, lng: 12.4922, name: 'Rome - Colosseum', city: 'Rome', country: 'Italy', external_url: 'https://www.skylinewebcams.com/en/webcam/italia/lazio/roma/colosseo.html', source: 'SkylineWebcams' },
   { id: 'sky-it-navona', lat: 41.8992, lng: 12.4731, name: 'Rome - Piazza Navona', city: 'Rome', country: 'Italy', feed_url: '/api/cctv/proxy?url=https%3A%2F%2Fcdn.skylinewebcams.com%2Flive343.jpg', external_url: 'https://www.skylinewebcams.com/en/webcam/italia/lazio/roma/piazza-navona.html', source: 'SkylineWebcams' },
   { id: 'sky-it-spagna', lat: 41.9059, lng: 12.4827, name: 'Rome - Spanish Steps', city: 'Rome', country: 'Italy', external_url: 'https://www.skylinewebcams.com/en/webcam/italia/lazio/roma/piazza-di-spagna.html', source: 'SkylineWebcams' },
-  
+
   // Venice
   { id: 'sky-it-rialto', lat: 45.4381, lng: 12.3358, name: 'Venice - Rialto Bridge', city: 'Venice', country: 'Italy', external_url: 'https://www.skylinewebcams.com/en/webcam/italia/veneto/venezia/ponte-di-rialto.html', source: 'SkylineWebcams' },
   { id: 'sky-it-sanmarco', lat: 45.4341, lng: 12.3384, name: 'Venice - St. Mark\'s Square', city: 'Venice', country: 'Italy', external_url: 'https://www.skylinewebcams.com/en/webcam/italia/veneto/venezia/piazza-san-marco.html', source: 'SkylineWebcams' },
@@ -28,7 +28,7 @@ const SKYLINE_ITALY: CctvCamera[] = [
 
   // Amalfi Coast
   { id: 'sky-it-amalfi', lat: 40.6333, lng: 14.6027, name: 'Amalfi Coast - Positano', city: 'Positano', country: 'Italy', feed_url: '/api/cctv/proxy?url=https%3A%2F%2Fcdn.skylinewebcams.com%2Flive259.jpg', external_url: 'https://www.skylinewebcams.com/en/webcam/italia/campania/salerno/positano.html', source: 'SkylineWebcams' },
-  
+
   // Sicily
   { id: 'sky-it-etna', lat: 37.7510, lng: 14.9934, name: 'Mount Etna - Volcano', city: 'Catania', country: 'Italy', external_url: 'https://www.skylinewebcams.com/en/webcam/italia/sicilia/catania/vulcano-etna.html', source: 'SkylineWebcams' },
 ];

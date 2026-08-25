@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════
-   OSIRIS — Route Planner
+   OCULIX — Route Planner
    Turn-by-turn routing over /api/directions (Valhalla + OSRM)
    ═══════════════════════════════════════════════════════════════ */
 
@@ -532,7 +532,7 @@ export default function DirectionsBar({ onRoute, onLocate, onClose, center = nul
    * Fill the origin with wherever the operator is.
    *
    * Tries the browser first (precise, but needs permission and a secure
-   * context), then falls back to OSIRIS's existing IP geolocation, which needs
+   * context), then falls back to OCULIX's existing IP geolocation, which needs
    * neither — so this still does something useful when permission is denied.
    */
   const useMyLocation = useCallback(async () => {
@@ -942,7 +942,7 @@ export default function DirectionsBar({ onRoute, onLocate, onClose, center = nul
                   <svg viewBox="0 0 300 40" className="w-full h-10" preserveAspectRatio="none" aria-hidden="true">
                     <path
                       d={`${elevationPath(route.elevation, 300, 38)} L300,40 L0,40 Z`}
-                      fill="rgba(0,229,255,0.12)"
+                      fill="rgba(34,211,238,0.12)"
                     />
                     <path
                       d={elevationPath(route.elevation, 300, 38)}

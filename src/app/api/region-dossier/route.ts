@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 /**
- * OSIRIS — Region Dossier API
+ * OCULIX — Region Dossier API
  * Provides country intelligence for any coordinate (right-click on map)
  * Fix #115: Steps 2-4 now run in parallel via Promise.allSettled
  */
@@ -17,7 +17,7 @@ export async function GET(request: Request) {
       `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=5&addressdetails=1`,
       {
         signal: AbortSignal.timeout(8000),
-        headers: { 'User-Agent': 'OsirisIntelPlatform/1.0' },
+        headers: { 'User-Agent': 'OculixIntelPlatform/1.0' },
       }
     );
 
@@ -59,7 +59,7 @@ export async function GET(request: Request) {
               thumbnail: wiki.thumbnail?.source,
             };
           }
-        } catch (e) { console.warn('[OSIRIS] Wikipedia fetch error:', e instanceof Error ? e.message : e); }
+        } catch (e) { console.warn('[OCULIX] Wikipedia fetch error:', e instanceof Error ? e.message : e); }
         return null;
       })(),
 
@@ -70,45 +70,45 @@ export async function GET(request: Request) {
           const safe = countryName.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
           const sparql = `
           SELECT ?leaderLabel ?positionLabel ?population ?area ?capitalLabel ?regionLabel ?flagUrl (GROUP_CONCAT(DISTINCT ?langLabel; separator=", ") AS ?languages) (GROUP_CONCAT(DISTINCT ?currLabel; separator=", ") AS ?currencies)
-          WHERE { 
-            ?country wdt:P31/wdt:P279* wd:Q6256; 
-                     rdfs:label "${safe}"@en. 
-            OPTIONAL { 
-              ?country wdt:P6 ?leader. 
+          WHERE {
+            ?country wdt:P31/wdt:P279* wd:Q6256;
+                     rdfs:label "${safe}"@en.
+            OPTIONAL {
+              ?country wdt:P6 ?leader.
               OPTIONAL { ?leader wdt:P39 ?position. }
             }
-            OPTIONAL { ?country wdt:P1082 ?population. } 
-            OPTIONAL { ?country wdt:P2046 ?area. } 
-            OPTIONAL { ?country wdt:P36 ?capital. } 
-            OPTIONAL { ?country wdt:P30 ?region. } 
-            OPTIONAL { ?country wdt:P37 ?lang. } 
-            OPTIONAL { ?country wdt:P38 ?curr. } 
-            OPTIONAL { ?country wdt:P41 ?flagUrl. } 
-            SERVICE wikibase:label { 
-              bd:serviceParam wikibase:language "en". 
+            OPTIONAL { ?country wdt:P1082 ?population. }
+            OPTIONAL { ?country wdt:P2046 ?area. }
+            OPTIONAL { ?country wdt:P36 ?capital. }
+            OPTIONAL { ?country wdt:P30 ?region. }
+            OPTIONAL { ?country wdt:P37 ?lang. }
+            OPTIONAL { ?country wdt:P38 ?curr. }
+            OPTIONAL { ?country wdt:P41 ?flagUrl. }
+            SERVICE wikibase:label {
+              bd:serviceParam wikibase:language "en".
               ?leader rdfs:label ?leaderLabel.
               ?position rdfs:label ?positionLabel.
-              ?capital rdfs:label ?capitalLabel. 
-              ?region rdfs:label ?regionLabel. 
-              ?lang rdfs:label ?langLabel. 
-              ?curr rdfs:label ?currLabel. 
-            } 
-          } 
+              ?capital rdfs:label ?capitalLabel.
+              ?region rdfs:label ?regionLabel.
+              ?lang rdfs:label ?langLabel.
+              ?curr rdfs:label ?currLabel.
+            }
+          }
           GROUP BY ?leaderLabel ?positionLabel ?population ?area ?capitalLabel ?regionLabel ?flagUrl
           LIMIT 1`;
-          
+
           const res = await fetch(
             `https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(sparql)}`,
             {
               signal: AbortSignal.timeout(6000),
-              headers: { 'User-Agent': 'OsirisIntelPlatform/1.0', 'Accept': 'application/json' },
+              headers: { 'User-Agent': 'OculixIntelPlatform/1.0', 'Accept': 'application/json' },
             }
           );
           if (res.ok) {
             const wd = await res.json();
             return wd.results?.bindings?.[0] || null;
           }
-        } catch (e) { console.warn('[OSIRIS] Wikidata fetch error:', e instanceof Error ? e.message : e); }
+        } catch (e) { console.warn('[OCULIX] Wikidata fetch error:', e instanceof Error ? e.message : e); }
         return null;
       })(),
     ]);

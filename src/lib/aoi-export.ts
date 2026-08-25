@@ -2,7 +2,7 @@ import type { DrawnShape } from './draw';
 import type { AoiReport } from './aoi';
 
 /**
- * OSIRIS — AOI persistence and export
+ * OCULIX — AOI persistence and export
  *
  * Two jobs that sound unrelated but are the same problem: getting a drawn area,
  * and what was found inside it, out of volatile memory. One goes to
@@ -76,7 +76,7 @@ export function contentsToCSV(shape: DrawnShape, report: AoiReport): string {
 
 /* ── Persistence ────────────────────────────────────────────────────────── */
 
-export const STORAGE_KEY = 'osiris.aoi.shapes.v1';
+export const STORAGE_KEY = 'oculix.aoi.shapes.v1';
 
 /** Only what is needed to rebuild a shape; derived values are recomputed. */
 interface StoredShape {
@@ -129,7 +129,7 @@ export function deserializeShapes(raw: string | null): DrawnShape[] {
       geojson: s.geojson,
       areaKm2: Number(s.areaKm2) || 0,
       perimeterKm: Number(s.perimeterKm) || 0,
-      color: typeof s.color === 'string' ? s.color : '#00E5FF',
+      color: typeof s.color === 'string' ? s.color : '#22D3EE',
       createdAt: Number(s.createdAt) || Date.now(),
       meta: s.meta,
     });
