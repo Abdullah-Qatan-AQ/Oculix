@@ -39,7 +39,8 @@ import { toShape, queryRing, type DrawMode, type DrawnShape, type DrawProgress, 
 import { selectInPolygon } from '@/lib/aoi';
 import { diffSweep, appendEvents, type WatchBaseline, type WatchEvent } from '@/lib/watch';
 import { STORAGE_KEY, serializeShapes, deserializeShapes, shapesToGeoJSON, downloadFile } from '@/lib/aoi-export';
-const TokenPanel = dynamic(() => import('@/components/TokenPanel'));
+import type { OculixTheme } from '@/lib/theme';
+
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
@@ -232,11 +233,11 @@ export default function Dashboard() {
   const [scanTargets, setScanTargets] = useState<any[]>([]);
   const [drawnPolygons, setDrawnPolygons] = useState<DrawnShape[]>([]);
   const [demoMode, setDemoMode] = useState(false);
-  const [oculixTheme, setOculixTheme] = useState<'core'|'ghost'>('core');
+  const [oculixTheme, setOculixTheme] = useState<OculixTheme>('core');
   const [language, setLanguage] = useState<'ar'|'en'>('ar');
   const [showSettings, setShowSettings] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(false);
-  const [visualOptions, setVisualOptions] = useState({ reducedMotion: false, grid: true, scanlines: true, ticker: true });
+  const [visualOptions, setVisualOptions] = useState({ reducedMotion: false, grid: true, scanlines: true, ticker: true, ambient: true });
   const [pwaInstalled, setPwaInstalled] = useState(false);
 
   useEffect(() => {
@@ -246,7 +247,7 @@ export default function Dashboard() {
       const savedSound = window.localStorage.getItem('oculix-sound');
       const savedVisuals = window.localStorage.getItem('oculix-visual-options');
       if (savedLanguage === 'ar' || savedLanguage === 'en') setLanguage(savedLanguage);
-      if (savedTheme === 'core' || savedTheme === 'ghost') setOculixTheme(savedTheme);
+      if (savedTheme === 'core' || savedTheme === 'ghost' || savedTheme === 'aurora' || savedTheme === 'ember') setOculixTheme(savedTheme);
       if (savedSound === 'true') setSoundEnabled(true);
       if (savedVisuals) {
         const parsed = JSON.parse(savedVisuals);
@@ -261,7 +262,8 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    document.body.classList.toggle('theme-ghost', oculixTheme === 'ghost');
+    document.body.classList.remove('theme-core', 'theme-ghost', 'theme-aurora', 'theme-ember');
+    document.body.classList.add(`theme-${oculixTheme}`);
     document.documentElement.lang = language;
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
     try {
@@ -852,10 +854,11 @@ export default function Dashboard() {
 
 
   return (
-    <main className={`fixed inset-0 w-full h-full bg-[var(--bg-void)] overflow-hidden ${visualOptions.reducedMotion ? 'oculix-reduced-motion' : ''} ${visualOptions.grid ? '' : 'oculix-no-grid'} ${visualOptions.scanlines ? '' : 'oculix-no-scanlines'}`}>
+    <main className={`fixed inset-0 w-full h-full bg-[var(--bg-void)] overflow-hidden ${visualOptions.reducedMotion ? 'oculix-reduced-motion' : ''} ${visualOptions.grid ? '' : 'oculix-no-grid'} ${visualOptions.scanlines ? '' : 'oculix-no-scanlines'} ${visualOptions.ambient ? '' : 'oculix-no-ambient'}`}>
       <PWAInstallPrompt language={language} />
       <LocaleSurface language={language} />
       <OculixSoundscape enabled={soundEnabled} />
+      {visualOptions.ambient && <div className="oculix-ambient-field" aria-hidden="true" />}
       <SettingsPanel
         open={showSettings}
         onClose={() => setShowSettings(false)}
@@ -968,8 +971,8 @@ export default function Dashboard() {
               />
             </div>
 
-            {/* ── OCULIX title — letter-by-letter stagger ── */}
-            <div className="flex items-center gap-[2px] mb-3 z-[2]">
+            {/* ── OCULIX title — isolated LTR brand wordmark ── */}
+            <div dir="ltr" className="oculix-brand-wordmark flex items-center gap-[2px] mb-3 z-[2]" aria-label="OCULIX">
               {'OCULIX'.split('').map((letter, i) => (
                 <motion.span
                   key={i}
@@ -1262,10 +1265,9 @@ export default function Dashboard() {
       </motion.div>
 
       {/* ── HEADER ── */}
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 2.5 }} className={`oculix-original-header absolute top-4 z-[200] pointer-events-none flex flex-col`} style={{ left: isMobile ? '24px' : '64px', right: '24px' }}>
-        <div className="flex items-center gap-3 w-fit">
+      <motion.div dir="ltr" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 2.5 }} className={`oculix-original-header absolute z-[200] pointer-events-none flex flex-col`} style={{ top: isMobile ? '58px' : '16px', left: isMobile ? '16px' : '64px', right: isMobile ? '16px' : '24px' }}>
+        <div dir="ltr" className="flex items-center gap-3 w-fit">
           <img className="oculix-header-mark" src="/oculix-icon.png" alt="OX" />
-          <img className="oculix-header-mark-secondary" src="/oculix-icon.png" alt="" aria-hidden="true" />
           <div className="flex flex-col items-start gap-0.5">
             <h1 className="text-lg md:text-xl font-bold tracking-[0.4em] text-[#D4AF37] font-mono">OCULIX</h1>
             <span className="text-[9px] md:text-[10px] font-mono tracking-[0.2em] opacity-80 uppercase text-[#D4AF37]">OPEN SOURCE INTELLIGENCE</span>
@@ -1302,30 +1304,19 @@ export default function Dashboard() {
 
         <span className="text-[11px] font-bold tracking-[0.2em] text-[var(--text-muted)] opacity-50">V.4.1</span>
         
-        <TokenPanel />
-
         <button type="button" onClick={() => setShowSettings(true)} className="pointer-events-auto glass-panel px-2.5 py-1.5 flex items-center gap-1.5 text-[9px] font-mono tracking-widest hover:opacity-80 transition-opacity border-[var(--cyan-primary)]/30 bg-[var(--cyan-primary)]/10" title="Settings" aria-label="Settings">
           <Settings2 className="w-3 h-3 text-[var(--cyan-primary)]" />
           <span className="text-[var(--cyan-primary)] font-bold hidden sm:inline">SETTINGS</span>
         </button>
 
-        <a href='https://ko-fi.com/M8D41ZYW4Z' target='_blank' rel='noopener noreferrer' className="pointer-events-auto glass-panel px-3 py-1.5 flex items-center gap-1.5 text-[9px] font-mono tracking-widest hover:opacity-80 transition-opacity border-[var(--gold-primary)]/40 bg-[var(--gold-primary)]/10 ml-3 shadow-[0_0_10px_rgba(255,215,0,0.1)]">
-          <div className="w-1.5 h-1.5 rounded-full bg-[var(--gold-primary)] animate-oculix-pulse" />
-          <span className="text-[var(--gold-primary)] font-bold">SUPPORT</span>
-        </a>
       </motion.div>
 
       {/* ── MOBILE: Compact top status ── */}
-      {/* The route planner claims the top of a phone screen; leaving this in
-          place would put the support badge underneath the destination field. */}
+      {/* The compact controls stay clear of the route planner on phone screens. */}
       {isMobile && !showDirections && !navSession && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.5 }} className="absolute top-3 right-3 z-[200] pointer-events-auto flex items-center gap-2">
           <button type="button" onClick={() => setShowSettings(true)} className="glass-panel p-1.5 border border-[var(--cyan-primary)]/30 bg-[var(--cyan-primary)]/10" title="Settings" aria-label="Settings"><Settings2 className="w-3.5 h-3.5 text-[var(--cyan-primary)]" /></button>
-          <TokenPanel />
-          <a href='https://ko-fi.com/M8D41ZYW4Z' target='_blank' rel='noopener noreferrer' className="glass-panel px-2 py-1 flex items-center gap-1.5 text-[9px] font-mono tracking-widest hover:opacity-80 transition-opacity border-[var(--gold-primary)]/40 bg-[var(--gold-primary)]/10">
-            <div className="w-1 h-1 rounded-full bg-[var(--gold-primary)] animate-oculix-pulse" />
-            <span className="text-[var(--gold-primary)] font-bold">SUPPORT</span>
-          </a>
+
         </motion.div>
       )}
 
@@ -1636,13 +1627,12 @@ export default function Dashboard() {
             <div className="glass-panel mobile-nav-inner">
               {[
                 { id: 'layers' as const, icon: Layers, label: 'LAYERS' },
-                { id: 'markets' as const, icon: BarChart3, label: 'MARKETS' },
-                { id: 'intel' as const, icon: Newspaper, label: 'INTEL' },
-                { id: 'recon' as const, icon: Radar, label: 'RECON' },
                 { id: 'search' as const, icon: Search, label: 'SEARCH' },
-                // Routing was reachable only from the desktop tool rail, so a
-                // phone could not open it at all. It sits next to SEARCH
-                // because both answer "take me somewhere".
+                { id: 'intel' as const, icon: Newspaper, label: 'INTEL' },
+                { id: 'markets' as const, icon: BarChart3, label: 'MARKETS' },
+                { id: 'recon' as const, icon: Radar, label: 'RECON' },
+                // Routing remains visible on phones, alongside the discovery
+                // tools, without changing its original navigation behavior.
                 { id: 'route' as const, icon: Route, label: 'ROUTE' },
                 { id: 'remote' as const, icon: Bluetooth, label: 'REMOTE' },
               ].map(tab => {

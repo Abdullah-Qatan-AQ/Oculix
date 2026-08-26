@@ -2544,3 +2544,100 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 
 .oculix-header-mark-secondary { display: none; }
 button:active, a:active { transform: scale(.98); }
+
+/* ── Extended Oculix themes ── */
+body.theme-aurora {
+  --gold-rgb: 102, 226, 255;
+  --cyan-rgb: 151, 255, 215;
+  --bg-void: #031019;
+  --bg-primary: #06232b;
+  --bg-secondary: #0a3940;
+  --bg-tertiary: #124b54;
+  --bg-panel: rgba(3, 24, 32, .9);
+  --bg-panel-solid: #06252d;
+  --gold-primary: #66e2ff;
+  --gold-light: #c2f7ff;
+  --gold-dim: #277f9b;
+  --gold-glow: rgba(102, 226, 255, .3);
+  --cyan-primary: #97ffd7;
+  --cyan-dim: #3aa88f;
+  --cyan-glow: rgba(151, 255, 215, .18);
+  --border-primary: rgba(102, 226, 255, .2);
+  --border-secondary: rgba(151, 255, 215, .1);
+  --border-active: rgba(151, 255, 215, .5);
+  --border-cyan: rgba(102, 226, 255, .25);
+  --text-primary: #e7fbff;
+  --text-secondary: #9dcbd0;
+  --text-muted: #5d8d94;
+  --text-heading: #f0feff;
+  --text-gold: #9beeff;
+  --text-cyan: #97ffd7;
+  --scrollbar-thumb: rgba(102, 226, 255, .25);
+  --scrollbar-thumb-hover: rgba(151, 255, 215, .5);
+  --hover-accent: rgba(102, 226, 255, .1);
+}
+body.theme-ember {
+  --gold-rgb: 255, 160, 92;
+  --cyan-rgb: 255, 212, 125;
+  --bg-void: #120a08;
+  --bg-primary: #21100b;
+  --bg-secondary: #351810;
+  --bg-tertiary: #4b2413;
+  --bg-panel: rgba(25, 11, 8, .92);
+  --bg-panel-solid: #2a120c;
+  --gold-primary: #ff9e5c;
+  --gold-light: #ffd0a8;
+  --gold-dim: #a64e28;
+  --gold-glow: rgba(255, 158, 92, .3);
+  --cyan-primary: #ffd47d;
+  --cyan-dim: #b87936;
+  --cyan-glow: rgba(255, 212, 125, .18);
+  --border-primary: rgba(255, 158, 92, .2);
+  --border-secondary: rgba(255, 212, 125, .1);
+  --border-active: rgba(255, 212, 125, .5);
+  --border-cyan: rgba(255, 158, 92, .25);
+  --text-primary: #fff3e6;
+  --text-secondary: #d8b79b;
+  --text-muted: #8f6851;
+  --text-heading: #fff9f1;
+  --text-gold: #ffc07e;
+  --text-cyan: #ffd47d;
+  --scrollbar-thumb: rgba(255, 158, 92, .25);
+  --scrollbar-thumb-hover: rgba(255, 212, 125, .5);
+  --hover-accent: rgba(255, 158, 92, .1);
+}
+body.theme-aurora::before, body.theme-ember::before { content: ''; position: fixed; inset: -25%; z-index: 0; pointer-events: none; opacity: .22; background: radial-gradient(ellipse at 25% 25%, rgba(var(--cyan-rgb), .22), transparent 32%), radial-gradient(ellipse at 75% 70%, rgba(var(--gold-rgb), .16), transparent 35%); animation: oculix-atmosphere-drift 16s ease-in-out infinite alternate; }
+@keyframes oculix-atmosphere-drift { from { transform: translate3d(-2%, -1%, 0) scale(1); } to { transform: translate3d(2%, 1%, 0) scale(1.06); } }
+
+/* Brand names must remain left-to-right even when the full UI is Arabic RTL. */
+.oculix-brand-wordmark, .oculix-brand-wordmark *, .oculix-original-header, .oculix-original-header *, [data-oculix-brand] { direction: ltr; unicode-bidi: isolate; }
+.oculix-brand-wordmark { white-space: nowrap; }
+.oculix-original-header h1 { unicode-bidi: isolate; }
+.mobile-nav-inner { direction: ltr; }
+
+/* Settings guide */
+.oculix-settings-theme-row { align-items: flex-start; }
+.oculix-theme-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; width: min(270px, 100%); }
+.oculix-theme-grid button { min-height: 31px; padding: 6px 8px; color: var(--text-secondary); background: rgba(255,255,255,.035); border: 1px solid var(--border-secondary); border-radius: 8px; font-family: var(--font-hud); font-size: 8px; }
+.oculix-theme-grid button:hover { color: var(--text-primary); border-color: var(--border-active); transform: translateY(-1px); }
+.oculix-theme-grid button.is-selected { color: var(--bg-void); background: var(--cyan-primary); border-color: var(--cyan-primary); box-shadow: 0 0 16px rgba(var(--cyan-rgb), .22); }
+.oculix-guide-section { padding-bottom: 26px; }
+.oculix-guide-callout { display: flex; align-items: flex-start; gap: 9px; margin: 12px 0; padding: 10px 11px; color: var(--text-secondary); background: linear-gradient(120deg, rgba(var(--cyan-rgb), .08), rgba(var(--gold-rgb), .04)); border: 1px solid var(--border-secondary); border-radius: 10px; }
+.oculix-guide-callout svg { flex: 0 0 auto; margin-top: 2px; color: var(--cyan-primary); }
+.oculix-guide-callout p { margin: 0; font-size: 10px; line-height: 1.75; }
+.oculix-guide-callout--data svg { color: var(--gold-primary); }
+.oculix-guide-list { display: grid; gap: 6px; }
+.oculix-guide-item { border: 1px solid var(--border-secondary); border-radius: 10px; background: rgba(255,255,255,.02); overflow: hidden; }
+.oculix-guide-item summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 11px 12px; color: var(--text-primary); cursor: pointer; list-style: none; font-size: 11px; font-weight: 700; }
+.oculix-guide-item summary::-webkit-details-marker { display: none; }
+.oculix-guide-item summary::before { content: '＋'; color: var(--cyan-primary); font-family: var(--font-hud); font-size: 13px; }
+.oculix-guide-item[open] summary::before { content: '−'; }
+.oculix-guide-item summary svg { color: var(--gold-primary); opacity: .7; }
+.oculix-guide-item > p { margin: 0; padding: 0 12px 13px; color: var(--text-secondary); font-size: 10px; line-height: 1.85; }
+@media (max-width: 640px) { .oculix-theme-grid { width: 100%; } .oculix-guide-item summary { font-size: 10px; } .oculix-guide-item > p, .oculix-guide-callout p { font-size: 11px; } }
+@media (prefers-reduced-motion: reduce) { body.theme-aurora::before, body.theme-ember::before { animation: none; } }
+
+.oculix-ambient-field { position: absolute; inset: -20%; z-index: 1; pointer-events: none; opacity: .12; background: radial-gradient(ellipse at 20% 15%, rgba(var(--cyan-rgb), .3), transparent 24%), radial-gradient(ellipse at 82% 80%, rgba(var(--gold-rgb), .22), transparent 28%), repeating-linear-gradient(115deg, transparent 0 42px, rgba(var(--cyan-rgb), .035) 43px, transparent 44px); filter: blur(18px) saturate(125%); animation: oculix-ambient-drift 18s ease-in-out infinite alternate; }
+@keyframes oculix-ambient-drift { from { transform: translate3d(-2%, -1%, 0) rotate(-1deg) scale(1); } to { transform: translate3d(2%, 1%, 0) rotate(1deg) scale(1.08); } }
+.oculix-no-ambient .oculix-ambient-field { display: none; }
+@media (prefers-reduced-motion: reduce) { .oculix-ambient-field { animation: none; } }
