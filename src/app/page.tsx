@@ -22,6 +22,9 @@ import LiveAlerts from '@/components/LiveAlerts';
 import WorldRemote from '@/components/WorldRemote';
 import ArcGISPanel from '@/components/ArcGISPanel';
 import SettingsPanel, { type OculixLanguage, type OculixUiTheme } from '@/components/SettingsPanel';
+import NexusShell from '@/components/NexusShell';
+import NexusSplash from '@/components/NexusSplash';
+import LocaleSurface from '@/components/LocaleSurface';
 const OculixMap = dynamic(() => import('@/components/OculixMap'), { ssr: false });
 const LayerPanel = dynamic(() => import('@/components/LayerPanel'));
 const SpaceCam = dynamic(() => import('@/components/SpaceCam'), { ssr: false });
@@ -827,6 +830,11 @@ export default function Dashboard() {
   return (
     <main className="fixed inset-0 w-full h-full bg-[var(--bg-void)] overflow-hidden">
 
+      <NexusSplash language={language} visible={showSplash} />
+      <LocaleSurface language={language} />
+
+      {/* Legacy splash retained in source only for backwards compatibility; hidden from the new experience. */}
+      <div className="legacy-splash">
       {/* ── SPLASH ── */}
       <AnimatePresence>
         {showSplash && (
@@ -1019,8 +1027,7 @@ export default function Dashboard() {
           </motion.div>
         )}
       </AnimatePresence>
-
-
+      </div>
 
       {/* ── MAP ── */}
       <ErrorBoundary name="Map">
@@ -1059,6 +1066,19 @@ export default function Dashboard() {
           aircraftAirports={aircraftAirports}
         />
       </ErrorBoundary>
+
+      {!showSplash && (
+        <NexusShell
+          language={language}
+          entityCount={Object.values(data).reduce<number>((total, value) => total + (Array.isArray(value) ? value.length : 0), 0)}
+          layerCount={Object.values(activeLayers).filter(Boolean).length}
+          backendStatus={backendStatus}
+          onSettings={() => setShowSettings(true)}
+          onLayers={() => { setShowLayers(true); setShowSettings(false); }}
+          onAdvanced={() => { setShowAdvancedTools(true); setShowSettings(false); }}
+          onReset={() => { setMapProjection('globe'); setMapStyle('dark'); setFlyToLocation({ lat: 20, lng: 0, zoom: 2.5, ts: Date.now() }); }}
+        />
+      )}
 
       {/* ── DIRECTIONS — opens beside the right-hand tool rail ── */}
       <div
@@ -1143,7 +1163,7 @@ export default function Dashboard() {
       {/* ── MAP VIEW CONTROLS ── */}
       <motion.div
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 3.5 }}
-        className="absolute bottom-[75px] md:bottom-[100px] z-[200] flex flex-col gap-1.5 pointer-events-none"
+        className="legacy-map-controls absolute bottom-[75px] md:bottom-[100px] z-[200] flex flex-col gap-1.5 pointer-events-none"
         style={{ left: isMobile ? '12px' : '120px' }}
       >
         {/* Unified Control Strip */}
@@ -1216,7 +1236,7 @@ export default function Dashboard() {
       </motion.div>
 
       {/* ── HEADER ── */}
-      <motion.div dir="ltr" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 2.5 }} className={`absolute top-4 z-[200] pointer-events-none flex flex-col`} style={{ left: isMobile ? '24px' : '64px', right: '24px' }}>
+      <motion.div dir="ltr" initial={{ opacity: 1, y: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 2.5 }} className={`legacy-header absolute top-4 z-[200] pointer-events-none flex flex-col`} style={{ left: isMobile ? '24px' : '64px', right: '24px' }}>
         <div className="flex items-center gap-3 w-fit">
           <div className="brand-mark" aria-label="OX logo">OX</div>
           <div className="flex flex-col items-start gap-0.5">
@@ -1236,7 +1256,7 @@ export default function Dashboard() {
 
 
       {/* ── TOP-RIGHT STATUS (desktop) ── */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 3 }} className="status-bar-desktop absolute top-4 right-6 z-[200] pointer-events-none flex items-center gap-3 text-[10px] font-mono tracking-widest text-[var(--text-muted)]">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 3 }} className="legacy-status status-bar-desktop absolute top-4 right-6 z-[200] pointer-events-none flex items-center gap-3 text-[10px] font-mono tracking-widest text-[var(--text-muted)]">
 
         <span className="hidden lg:inline-flex items-center gap-1.5">
           <ZuluClock />
@@ -1287,7 +1307,7 @@ export default function Dashboard() {
 
 
       {/* ── RIGHT TOOL STRIP (desktop only — mobile uses bottom nav) ── */}
-      {!isMobile && showAdvancedTools && <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-[250] pointer-events-auto bg-black/40 backdrop-blur-sm p-1 rounded-full border border-white/5">
+      {!isMobile && showAdvancedTools && <div className={`${showAdvancedTools ? '' : 'nexus-legacy-hidden'} legacy-tool-rail absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-[250] pointer-events-auto bg-black/40 backdrop-blur-sm p-1 rounded-full border border-white/5`}>
         <div className="relative group">
           <button onClick={() => { setShowIntel(!showIntel); setShowMarkets(false); setShowAlerts(false); }} className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-white/50 ${showIntel ? 'bg-[var(--cyan-primary)]/20' : 'hover:bg-white/10'}`} title="OSINT Recon — IP lookup, network sweep, geolocation" aria-label="OSINT Recon" aria-expanded={showIntel}>
             <Radar className={`w-4 h-4 ${showIntel ? 'text-[var(--cyan-primary)]' : 'text-white/60'}`} />
@@ -1582,7 +1602,7 @@ export default function Dashboard() {
       {isMobile && (
         <>
           {/* Mobile Bottom Navigation */}
-          <div className="mobile-nav">
+          <div className="legacy-mobile-nav mobile-nav">
             <div className="glass-panel mobile-nav-inner">
               {[
                 { id: 'layers' as const, icon: Layers, label: language === 'ar' ? 'الطبقات' : 'LAYERS' },
@@ -1838,7 +1858,7 @@ export default function Dashboard() {
       {showTicker && <GlobalStatusBar />}
 
       {/* Shortcut hint — more visible */}
-      <div className="desktop-only absolute bottom-[26px] right-5 z-[200] pointer-events-none text-[9px] font-mono text-[var(--text-muted)] opacity-50 tracking-widest" title="Press ? to see all keyboard shortcuts">
+      <div className="legacy-shortcut desktop-only absolute bottom-[26px] right-5 z-[200] pointer-events-none text-[9px] font-mono text-[var(--text-muted)] opacity-50 tracking-widest" title="Press ? to see all keyboard shortcuts">
         {language === 'ar' ? <>اضغط <span className="text-[var(--gold-primary)] opacity-80">?</span> للاختصارات · <span className="text-[var(--gold-primary)] opacity-80">F</span> ملء الشاشة · <span className="text-[var(--gold-primary)] opacity-80">R</span> إعادة العرض</> : <>Press <span className="text-[var(--gold-primary)] opacity-80">?</span> for shortcuts · <span className="text-[var(--gold-primary)] opacity-80">F</span> fullscreen · <span className="text-[var(--gold-primary)] opacity-80">R</span> reset view</>} · Made by Abdullah Qatan
       </div>
 
