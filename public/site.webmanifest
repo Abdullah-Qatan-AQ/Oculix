@@ -1,7 +1,7 @@
 {
-  "name": "Oculix Nexus — Global Vision System",
-  "short_name": "Oculix Nexus",
-  "description": "A calm global intelligence workspace for live signals, maps and reconnaissance.",
+  "name": "Oculix — Global Intelligence Platform",
+  "short_name": "Oculix",
+  "description": "Real-time global intelligence workspace for maps, live signals, reconnaissance and space data.",
   "start_url": "/?installed=1",
   "scope": "/",
   "display": "standalone",

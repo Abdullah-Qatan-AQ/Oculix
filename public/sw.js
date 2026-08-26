@@ -1,5 +1,5 @@
-const CACHE_NAME = 'oculix-nexus-shell-v1';
-const APP_SHELL = ['/', '/site.webmanifest', '/favicon.ico', '/android-chrome-192x192.png', '/android-chrome-512x512.png'];
+const CACHE_NAME = 'oculix-shell-v2';
+const APP_SHELL = ['/', '/site.webmanifest', '/favicon.ico', '/favicon-32x32.png', '/android-chrome-192x192.png', '/android-chrome-512x512.png', '/oculix-icon.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));

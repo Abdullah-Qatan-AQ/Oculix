@@ -2465,3 +2465,82 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .pwa-install-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; color: #75F6CF; background: rgba(117,246,207,.11); }.pwa-install-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }.pwa-install-copy strong { font-size: 11px; }.pwa-install-copy span { color: rgba(216,240,236,.55); font-size: 9px; white-space: nowrap; }.pwa-install-button { padding: 8px 10px; border: 0; border-radius: 9px; color: #041115; background: #75F6CF; font-size: 10px; font-weight: 800; cursor: pointer; }.pwa-install-button:hover { box-shadow: 0 0 20px rgba(117,246,207,.32); }.pwa-dismiss-button { display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border: 0; color: rgba(216,240,236,.45); background: transparent; cursor: pointer; }.pwa-dismiss-button:hover { color: #fff; }
 @keyframes oculix-pwa-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 680px) { .pwa-install-prompt { inset-inline: 12px; bottom: 82px; max-width: none; }.pwa-install-copy span { white-space: normal; } }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   OX CONTROL DECK — additive settings surface
+   ═══════════════════════════════════════════════════════════════ */
+.oculix-settings-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-start;
+  background: rgba(0, 4, 9, 0.52);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+.oculix-settings-panel {
+  width: min(460px, 94vw);
+  max-height: 100vh;
+  overflow-y: auto;
+  padding: 24px;
+  color: var(--text-primary);
+  background: linear-gradient(150deg, rgba(8, 18, 24, 0.98), rgba(3, 8, 14, 0.98));
+  border-inline-end: 1px solid var(--border-active);
+  box-shadow: 24px 0 80px rgba(0,0,0,.45), inset -1px 0 0 rgba(var(--cyan-rgb), .06);
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+[dir="rtl"] .oculix-settings-backdrop { justify-content: flex-end; }
+[dir="rtl"] .oculix-settings-panel { border-inline-end: 0; border-inline-start: 1px solid var(--border-active); box-shadow: -24px 0 80px rgba(0,0,0,.45), inset 1px 0 0 rgba(var(--cyan-rgb), .06); }
+.oculix-settings-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding-bottom: 22px; border-bottom: 1px solid var(--border-secondary); }
+.oculix-settings-head h2 { margin: 8px 0 5px; color: var(--text-heading); font-family: var(--font-body); font-size: 22px; letter-spacing: -.02em; }
+.oculix-settings-head p { margin: 0; color: var(--text-secondary); font-size: 11px; line-height: 1.7; }
+.oculix-settings-eyebrow { display: inline-flex; align-items: center; gap: 6px; color: var(--cyan-primary); font-family: var(--font-hud); font-size: 9px; letter-spacing: .18em; text-transform: uppercase; }
+.oculix-settings-close { display: grid; place-items: center; flex: 0 0 auto; width: 32px; height: 32px; color: var(--text-secondary); background: rgba(255,255,255,.04); border: 1px solid var(--border-secondary); border-radius: 10px; }
+.oculix-settings-close:hover { color: var(--text-heading); border-color: var(--border-active); background: var(--hover-accent); }
+.oculix-settings-section { padding: 22px 0; border-bottom: 1px solid var(--border-secondary); }
+.oculix-settings-section h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 13px; color: var(--gold-light); font-family: var(--font-hud); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
+.oculix-settings-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 42px; padding: 8px 0; }
+.oculix-settings-row > span { display: inline-flex; align-items: center; gap: 8px; color: var(--text-primary); font-size: 12px; }
+.oculix-segmented, .oculix-mini-options { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+.oculix-segmented button, .oculix-mini-options button { color: var(--text-secondary); background: rgba(255,255,255,.035); border: 1px solid var(--border-secondary); border-radius: 7px; padding: 7px 9px; font-family: var(--font-hud); font-size: 9px; transition: transform .16s ease, color .16s ease, background .16s ease, border-color .16s ease; }
+.oculix-segmented button:hover, .oculix-mini-options button:hover { transform: translateY(-1px); color: var(--text-primary); border-color: var(--border-active); }
+.oculix-segmented button.is-selected, .oculix-mini-options button.is-selected { color: var(--bg-void); background: var(--cyan-primary); border-color: var(--cyan-primary); box-shadow: 0 0 14px rgba(var(--cyan-rgb), .18); }
+.oculix-toggle { display: inline-flex; align-items: center; gap: 7px; color: var(--text-secondary); background: transparent; border: 1px solid var(--border-secondary); border-radius: 999px; padding: 6px 9px; font-family: var(--font-hud); font-size: 9px; }
+.oculix-toggle i { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); box-shadow: 0 0 0 transparent; }
+.oculix-toggle.is-on { color: var(--cyan-primary); border-color: rgba(var(--cyan-rgb), .35); background: rgba(var(--cyan-rgb), .08); }
+.oculix-toggle.is-on i { background: var(--cyan-primary); box-shadow: 0 0 9px var(--cyan-primary); }
+.oculix-settings-note { margin: -4px 0 13px; color: var(--text-muted); font-size: 10px; line-height: 1.7; }
+.oculix-panel-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.oculix-panel-chip { display: flex; align-items: center; justify-content: space-between; gap: 7px; min-width: 0; padding: 9px 10px; color: var(--text-muted); text-align: start; background: rgba(255,255,255,.025); border: 1px solid var(--border-secondary); border-radius: 9px; }
+.oculix-panel-chip span { display: inline-flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.oculix-panel-chip small { color: inherit; font-family: var(--font-hud); font-size: 8px; }
+.oculix-panel-chip > span > i { width: 6px; height: 6px; border: 1px solid currentColor; border-radius: 50%; }
+.oculix-panel-chip.is-visible { color: var(--cyan-primary); background: rgba(var(--cyan-rgb), .07); border-color: rgba(var(--cyan-rgb), .25); }
+.oculix-reset-button { display: inline-flex; align-items: center; gap: 7px; margin-top: 15px; padding: 8px 10px; color: var(--gold-light); background: rgba(var(--gold-rgb), .05); border: 1px solid var(--border-primary); border-radius: 8px; font-family: var(--font-hud); font-size: 9px; }
+.oculix-reset-button:hover { background: var(--hover-accent); border-color: var(--border-active); }
+.oculix-settings-footer { display: flex; align-items: flex-end; justify-content: space-between; gap: 15px; padding-top: 20px; }
+.oculix-settings-footer > div:first-child { display: flex; flex-direction: column; gap: 5px; }
+.oculix-settings-footer strong { color: var(--text-primary); font-size: 11px; font-weight: 600; }
+.oculix-settings-footer small { color: var(--alert-green); font-family: var(--font-hud); font-size: 9px; }
+.oculix-rights { color: var(--text-muted); font-family: var(--font-hud); font-size: 9px; text-align: end; }
+.oculix-no-grid [data-oculix-grid] { display: none !important; }
+.oculix-no-scanlines [data-oculix-scanlines], .oculix-no-scanlines .crt-scanlines { display: none !important; }
+.oculix-reduced-motion *, .oculix-reduced-motion *::before, .oculix-reduced-motion *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+@media (max-width: 640px) {
+  .oculix-settings-panel { width: 100vw; padding: 20px 16px calc(20px + env(safe-area-inset-bottom)); }
+  .oculix-settings-row { align-items: flex-start; flex-direction: column; }
+  .oculix-segmented, .oculix-mini-options { justify-content: flex-start; }
+  .oculix-settings-footer { align-items: flex-start; flex-direction: column; }
+  .oculix-rights { text-align: start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .oculix-settings-panel *, .oculix-settings-panel *::before, .oculix-settings-panel *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+
+.oculix-header-mark-secondary { display: none; }
+button:active, a:active { transform: scale(.98); }

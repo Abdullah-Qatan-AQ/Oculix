@@ -1,0 +1,81 @@
+OCULIX V9 AUDIT
+Wed Aug 26 16:52:56 UTC 2026
+ROOT
+/home/ubuntu/Oculix-v9-enhanced
+FILE COUNTS
+194
+31
+68
+1865 src/app/page.tsx
+LIB FILES
+src/lib/ai-engine.ts
+src/lib/airports.ts
+src/lib/aoi-export.test.ts
+src/lib/aoi-export.ts
+src/lib/aoi.test.ts
+src/lib/aoi.ts
+src/lib/bulgaria-sources.ts
+src/lib/camera-feed.test.ts
+src/lib/camera-feed.ts
+src/lib/chainFeeds.ts
+src/lib/chainIntel.ts
+src/lib/countryCentroids.ts
+src/lib/draw.test.ts
+src/lib/draw.ts
+src/lib/gdeltEvents.ts
+src/lib/geo.test.ts
+src/lib/geo.ts
+src/lib/httpJson.ts
+src/lib/navigation.test.ts
+src/lib/navigation.ts
+src/lib/orbit.test.ts
+src/lib/orbit.ts
+src/lib/osint-utils.ts
+src/lib/sanctions.ts
+src/lib/satellite-layer.test.ts
+src/lib/satellite-layer.ts
+src/lib/sdk/LatticeAdapter.ts
+src/lib/sdk/PolybolosClient.ts
+src/lib/sdk/types.ts
+src/lib/sherlock.ts
+src/lib/skyline.test.ts
+src/lib/skyline.ts
+src/lib/sourceCache.test.ts
+src/lib/sourceCache.ts
+src/lib/ssrf-guard.ts
+src/lib/stealthFetch.ts
+src/lib/watch.test.ts
+src/lib/watch.ts
+src/lib/youtube.test.ts
+src/lib/youtube.ts
+KEY HASHES
+374d276ef4bbcf0dd2055582f5a4d0ad4d75da42b6f0340331ed8bc8e8993360  src/app/page.tsx
+f83175117d077882417cd539feca963999545a00872cb438fa0056b00ca46230  src/lib/orbit.ts
+4f7f7b6607a8ae6d8417329156f2f793a0a8b778a3ed5b47c2e010a3fe9b4c05  src/lib/orbit.test.ts
+c9c574d4d345c8632f2a05a7ab4c7ce6d29cd67811814fbce5e2c7404d45e987  src/app/api/satellites/orbit/route.ts
+OLD NAME SOURCE SCAN
+ASSETS
+public/android-chrome-192x192.png
+public/android-chrome-512x512.png
+public/apple-touch-icon.png
+public/casaos-icon.png
+public/dark-matter-style.json
+public/data/submarine-cables-filtered.json
+public/data/submarine-cables.json
+public/favicon-16x16.png
+public/favicon-32.svg
+public/favicon-32x32.png
+public/favicon.ico
+public/favicon.svg
+public/icon-192.png
+public/manifest.json
+public/oculix-icon.png
+public/oculix-icon.svg
+public/oculix-mark.svg
+public/oculix-orbit.svg
+public/og-image.png
+public/references/oculix-live-reference.jpg
+public/robots.txt
+public/site.webmanifest
+public/sitemap.xml
+public/sw.js
