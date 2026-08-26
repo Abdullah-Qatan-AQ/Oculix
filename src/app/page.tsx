@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Layers, BarChart3, Newspaper, Search, X, Globe, MapPinned, Route, Radar, Satellite, Moon, ExternalLink, AlertTriangle, Activity, Database, Wifi, Play, Network, Crosshair, Bluetooth, Pentagon, Radio , PenLine } from 'lucide-react';
+import { Layers, BarChart3, Newspaper, Search, X, Globe, MapPinned, Route, Radar, Satellite, Moon, ExternalLink, AlertTriangle, Activity, Database, Wifi, Play, Network, Crosshair, Bluetooth, Pentagon, Radio , PenLine, Settings2 } from 'lucide-react';
 import IntelFeed from '@/components/IntelFeed';
 import MarketsPanel from '@/components/MarketsPanel';
 import ScmPanel from '@/components/ScmPanel';
@@ -21,6 +21,7 @@ import GlobalStatusBar from '@/components/GlobalStatusBar';
 import LiveAlerts from '@/components/LiveAlerts';
 import WorldRemote from '@/components/WorldRemote';
 import ArcGISPanel from '@/components/ArcGISPanel';
+import SettingsPanel, { type OculixLanguage, type OculixUiTheme } from '@/components/SettingsPanel';
 const OculixMap = dynamic(() => import('@/components/OculixMap'), { ssr: false });
 const LayerPanel = dynamic(() => import('@/components/LayerPanel'));
 const SpaceCam = dynamic(() => import('@/components/SpaceCam'), { ssr: false });
@@ -112,9 +113,16 @@ export default function Dashboard() {
   const [regionDossier, setRegionDossier] = useState<any>(null);
   const [dossierLoading, setDossierLoading] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
+  const [language, setLanguage] = useState<OculixLanguage>('ar');
+  const [uiTheme, setUiTheme] = useState<OculixUiTheme>('zenith');
+  const [showAdvancedTools, setShowAdvancedTools] = useState(false);
+  const [showTicker, setShowTicker] = useState(false);
+  const [showGrid, setShowGrid] = useState(true);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const [activeCamera, setActiveCamera] = useState<any>(null);
   const [spaceWeather, setSpaceWeather] = useState<any>(null);
-  const [showLayers, setShowLayers] = useState(true);
+  const [showLayers, setShowLayers] = useState(false);
   const [showMarkets, setShowMarkets] = useState(false);
   const [showAlerts, setShowAlerts] = useState(false);
   const [showSpaceCam, setShowSpaceCam] = useState(false);
@@ -231,8 +239,30 @@ export default function Dashboard() {
   const [oculixTheme, setOculixTheme] = useState<'core'|'ghost'>('core');
 
   useEffect(() => {
-    document.body.className = oculixTheme === 'core' ? '' : `theme-${oculixTheme}`;
-  }, [oculixTheme]);
+    document.documentElement.lang = language;
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+    document.body.classList.toggle('ui-theme-aurora', uiTheme === 'aurora');
+    document.body.classList.toggle('ui-theme-ember', uiTheme === 'ember');
+    document.body.classList.toggle('ui-theme-paper', uiTheme === 'paper');
+    document.body.classList.toggle('reduce-motion', reducedMotion);
+    document.body.classList.toggle('hide-field-grid', !showGrid);
+    try {
+      localStorage.setItem('oculix.preferences', JSON.stringify({ language, uiTheme, showAdvancedTools, showTicker, showGrid, reducedMotion, showLayers }));
+    } catch { /* storage can be unavailable in private browsing */ }
+  }, [language, uiTheme, showAdvancedTools, showTicker, showGrid, reducedMotion, showLayers]);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('oculix.preferences') || '{}');
+      if (saved.language === 'ar' || saved.language === 'en') setLanguage(saved.language);
+      if (['zenith', 'aurora', 'ember', 'paper'].includes(saved.uiTheme)) setUiTheme(saved.uiTheme);
+      if (typeof saved.showAdvancedTools === 'boolean') setShowAdvancedTools(saved.showAdvancedTools);
+      if (typeof saved.showTicker === 'boolean') setShowTicker(saved.showTicker);
+      if (typeof saved.showGrid === 'boolean') setShowGrid(saved.showGrid);
+      if (typeof saved.reducedMotion === 'boolean') setReducedMotion(saved.reducedMotion);
+      if (typeof saved.showLayers === 'boolean') setShowLayers(saved.showLayers);
+    } catch { /* use the calm defaults */ }
+  }, []);
 
   const isMobile = useIsMobile();
   const startTime = useRef(Date.now());
@@ -813,14 +843,14 @@ export default function Dashboard() {
               animation: 'splashScanDrift 8s linear infinite',
             }} />
 
-            {/* ── V4.2 badge — top-left ── */}
+            {/* ── V5.0 badge — top-left ── */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.6 }}
               transition={{ delay: 0.8, duration: 0.5 }}
               className="absolute top-6 left-6 z-[2] font-mono text-[11px] tracking-[0.3em] text-[var(--gold-primary)]"
             >
-              V4.2
+              V5.0
             </motion.div>
 
 
@@ -893,7 +923,7 @@ export default function Dashboard() {
             </div>
 
             {/* ── OCULIX title — letter-by-letter stagger ── */}
-            <div className="flex items-center gap-[2px] mb-3 z-[2]">
+            <div dir="ltr" className="flex items-center gap-[2px] mb-3 z-[2]">
               {'Oculix'.split('').map((letter, i) => (
                 <motion.span
                   key={i}
@@ -917,7 +947,7 @@ export default function Dashboard() {
                 className="overflow-hidden whitespace-nowrap"
               >
                 <p className="text-[11px] md:text-[10px] font-mono tracking-[0.5em] text-[var(--gold-primary)]" style={{ opacity: 0.8 }}>
-                  LIVE SIGNAL INTELLIGENCE
+                  {language === 'ar' ? 'ذكاء الإشارات الحية' : 'LIVE SIGNAL INTELLIGENCE'}
                 </p>
               </motion.div>
             </div>
@@ -1186,17 +1216,20 @@ export default function Dashboard() {
       </motion.div>
 
       {/* ── HEADER ── */}
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 2.5 }} className={`absolute top-4 z-[200] pointer-events-none flex flex-col`} style={{ left: isMobile ? '24px' : '64px', right: '24px' }}>
+      <motion.div dir="ltr" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 2.5 }} className={`absolute top-4 z-[200] pointer-events-none flex flex-col`} style={{ left: isMobile ? '24px' : '64px', right: '24px' }}>
         <div className="flex items-center gap-3 w-fit">
           <div className="brand-mark" aria-label="OX logo">OX</div>
           <div className="flex flex-col items-start gap-0.5">
             <h1 className="text-lg md:text-xl font-bold tracking-[0.4em] text-[#8B5CF6] font-mono">Oculix</h1>
-            <span className="text-[9px] md:text-[10px] font-mono tracking-[0.2em] opacity-80 uppercase text-[#8B5CF6]">LIVE SIGNAL INTELLIGENCE</span>
+            <span className="text-[9px] md:text-[10px] font-mono tracking-[0.2em] opacity-80 uppercase text-[#8B5CF6]">{language === 'ar' ? 'ذكاء الإشارات الحية' : 'LIVE SIGNAL INTELLIGENCE'}</span>
           </div>
+          <button type="button" onClick={() => setShowSettings(true)} className="settings-launcher pointer-events-auto" aria-label="Open Oculix settings" title="Settings">
+            <Settings2 size={16} />
+          </button>
         </div>
         <div className="flex items-center gap-3 mt-1.5 pl-[44px] min-w-0 pr-4">
           <span className="text-[9px] md:text-[9px] text-[var(--text-muted)] font-mono tracking-[0.2em] md:tracking-[0.3em] uppercase opacity-40 truncate">
-            REAL-TIME GLOBAL MONITORING <span className="hidden md:inline">· FLIGHTS · MARITIME · SATELLITES · CCTV · WEATHER · CYBER THREATS</span>
+            {language === 'ar' ? 'مراقبة عالمية مباشرة' : 'REAL-TIME GLOBAL MONITORING'} <span className="hidden md:inline">· FLIGHTS · MARITIME · SATELLITES · CCTV · WEATHER · CYBER THREATS</span>
           </span>
         </div>
       </motion.div>
@@ -1213,23 +1246,23 @@ export default function Dashboard() {
 
         <span className="hidden lg:inline-flex items-center gap-1" title="Number of active data layers">
           <span className="text-[var(--cyan-primary)] font-bold">{Object.values(activeLayers).filter(Boolean).length}</span>
-          <span className="opacity-60">LAYERS</span>
+          <span className="opacity-60">{language === 'ar' ? 'طبقات' : 'LAYERS'}</span>
         </span>
 
         <span className="hidden lg:inline-flex items-center gap-1" title="Tracked entities on map">
           <ActiveEntityCount data={data} />
-          <span className="opacity-60">ENTITIES</span>
+          <span className="opacity-60">{language === 'ar' ? 'كيانات' : 'ENTITIES'}</span>
         </span>
 
         {spaceWeather && <span className="hidden lg:inline" title={`Geomagnetic Storm Index — Kp${spaceWeather.kp_index}`}>SOLAR: <span style={{ color: spaceWeather.storm_color, fontWeight: 700 }}>Kp{spaceWeather.kp_index}</span></span>}
 
-        <span className="text-[11px] font-bold tracking-[0.2em] text-[var(--text-muted)] opacity-50">V.4.1</span>
+        <span className="text-[11px] font-bold tracking-[0.2em] text-[var(--text-muted)] opacity-50">V.5.0</span>
 
         <TokenPanel />
 
         <a href='https://ko-fi.com/M8D41ZYW4Z' target='_blank' rel='noopener noreferrer' className="pointer-events-auto glass-panel px-3 py-1.5 flex items-center gap-1.5 text-[9px] font-mono tracking-widest hover:opacity-80 transition-opacity border-[var(--gold-primary)]/40 bg-[var(--gold-primary)]/10 ml-3 shadow-[0_0_10px_rgba(196,181,253,0.1)]">
           <div className="w-1.5 h-1.5 rounded-full bg-[var(--gold-primary)] animate-oculix-pulse" />
-          <span className="text-[var(--gold-primary)] font-bold">SUPPORT</span>
+          <span className="text-[var(--gold-primary)] font-bold">{language === 'ar' ? 'دعم' : 'SUPPORT'}</span>
         </a>
       </motion.div>
 
@@ -1241,7 +1274,7 @@ export default function Dashboard() {
           <TokenPanel />
           <a href='https://ko-fi.com/M8D41ZYW4Z' target='_blank' rel='noopener noreferrer' className="glass-panel px-2 py-1 flex items-center gap-1.5 text-[9px] font-mono tracking-widest hover:opacity-80 transition-opacity border-[var(--gold-primary)]/40 bg-[var(--gold-primary)]/10">
             <div className="w-1 h-1 rounded-full bg-[var(--gold-primary)] animate-oculix-pulse" />
-            <span className="text-[var(--gold-primary)] font-bold">SUPPORT</span>
+            <span className="text-[var(--gold-primary)] font-bold">{language === 'ar' ? 'دعم' : 'SUPPORT'}</span>
           </a>
         </motion.div>
       )}
@@ -1254,7 +1287,7 @@ export default function Dashboard() {
 
 
       {/* ── RIGHT TOOL STRIP (desktop only — mobile uses bottom nav) ── */}
-      {!isMobile && <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-[250] pointer-events-auto bg-black/40 backdrop-blur-sm p-1 rounded-full border border-white/5">
+      {!isMobile && showAdvancedTools && <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-[250] pointer-events-auto bg-black/40 backdrop-blur-sm p-1 rounded-full border border-white/5">
         <div className="relative group">
           <button onClick={() => { setShowIntel(!showIntel); setShowMarkets(false); setShowAlerts(false); }} className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-white/50 ${showIntel ? 'bg-[var(--cyan-primary)]/20' : 'hover:bg-white/10'}`} title="OSINT Recon — IP lookup, network sweep, geolocation" aria-label="OSINT Recon" aria-expanded={showIntel}>
             <Radar className={`w-4 h-4 ${showIntel ? 'text-[var(--cyan-primary)]' : 'text-white/60'}`} />
@@ -1552,16 +1585,16 @@ export default function Dashboard() {
           <div className="mobile-nav">
             <div className="glass-panel mobile-nav-inner">
               {[
-                { id: 'layers' as const, icon: Layers, label: 'LAYERS' },
-                { id: 'markets' as const, icon: BarChart3, label: 'MARKETS' },
-                { id: 'intel' as const, icon: Newspaper, label: 'INTEL' },
-                { id: 'recon' as const, icon: Radar, label: 'RECON' },
-                { id: 'search' as const, icon: Search, label: 'SEARCH' },
+                { id: 'layers' as const, icon: Layers, label: language === 'ar' ? 'الطبقات' : 'LAYERS' },
+                { id: 'markets' as const, icon: BarChart3, label: language === 'ar' ? 'الأسواق' : 'MARKETS' },
+                { id: 'intel' as const, icon: Newspaper, label: language === 'ar' ? 'الأخبار' : 'INTEL' },
+                { id: 'recon' as const, icon: Radar, label: language === 'ar' ? 'تحليل' : 'RECON' },
+                { id: 'search' as const, icon: Search, label: language === 'ar' ? 'بحث' : 'SEARCH' },
                 // Routing was reachable only from the desktop tool rail, so a
                 // phone could not open it at all. It sits next to SEARCH
                 // because both answer "take me somewhere".
-                { id: 'route' as const, icon: Route, label: 'ROUTE' },
-                { id: 'remote' as const, icon: Bluetooth, label: 'REMOTE' },
+                { id: 'route' as const, icon: Route, label: language === 'ar' ? 'مسار' : 'ROUTE' },
+                { id: 'remote' as const, icon: Bluetooth, label: language === 'ar' ? 'بعيد' : 'REMOTE' },
               ].map(tab => {
                 // Routing opens the planner at the top of the screen rather than
                 // the bottom drawer — it needs the room above the keyboard, and
@@ -1612,7 +1645,7 @@ export default function Dashboard() {
                 <div className="px-3 pb-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="hud-text text-[10px] text-[var(--text-primary)]">
-                      {mobilePanel === 'layers' ? 'LAYERS & STATS' : mobilePanel === 'markets' ? 'MARKETS & INTEL' : mobilePanel === 'intel' ? 'INTEL FEED' : mobilePanel === 'recon' ? 'OCULIX RECON' : mobilePanel === 'remote' ? 'WORLD REMOTE' : 'SEARCH'}
+                      {mobilePanel === 'layers' ? (language === 'ar' ? 'الطبقات والإحصاءات' : 'LAYERS & STATS') : mobilePanel === 'markets' ? (language === 'ar' ? 'الأسواق والذكاء' : 'MARKETS & INTEL') : mobilePanel === 'intel' ? (language === 'ar' ? 'موجز الأخبار' : 'INTEL FEED') : mobilePanel === 'recon' ? (language === 'ar' ? 'التحليل والاستطلاع' : 'OCULIX RECON') : mobilePanel === 'remote' ? (language === 'ar' ? 'التحكم البعيد' : 'WORLD REMOTE') : (language === 'ar' ? 'بحث' : 'SEARCH')}
                     </span>
                     <button onClick={() => setMobilePanel(null)} className="text-[var(--text-muted)] p-1"><X className="w-4 h-4" /></button>
                   </div>
@@ -1777,15 +1810,36 @@ export default function Dashboard() {
         </div>
       ))}
 
+      {/* Settings */}
+      <SettingsPanel
+        open={showSettings}
+        onClose={() => setShowSettings(false)}
+        language={language}
+        setLanguage={setLanguage}
+        theme={uiTheme}
+        setTheme={setUiTheme}
+        showAdvancedTools={showAdvancedTools}
+        setShowAdvancedTools={setShowAdvancedTools}
+        showTicker={showTicker}
+        setShowTicker={setShowTicker}
+        showGrid={showGrid}
+        setShowGrid={setShowGrid}
+        reducedMotion={reducedMotion}
+        setReducedMotion={setReducedMotion}
+        showLayers={showLayers}
+        setShowLayers={setShowLayers}
+        onResetView={() => { setMapProjection('globe'); setMapStyle('dark'); setFlyToLocation({ lat: 20, lng: 0, zoom: 2.5, ts: Date.now() }); }}
+      />
+
       {/* Keyboard Shortcuts Overlay */}
       <KeyboardShortcuts />
 
       {/* ── GLOBAL STATUS TICKER (bottom) ── */}
-      <GlobalStatusBar />
+      {showTicker && <GlobalStatusBar />}
 
       {/* Shortcut hint — more visible */}
       <div className="desktop-only absolute bottom-[26px] right-5 z-[200] pointer-events-none text-[9px] font-mono text-[var(--text-muted)] opacity-50 tracking-widest" title="Press ? to see all keyboard shortcuts">
-        Press <span className="text-[var(--gold-primary)] opacity-80">?</span> for shortcuts · <span className="text-[var(--gold-primary)] opacity-80">F</span> fullscreen · <span className="text-[var(--gold-primary)] opacity-80">R</span> reset view
+        {language === 'ar' ? <>اضغط <span className="text-[var(--gold-primary)] opacity-80">?</span> للاختصارات · <span className="text-[var(--gold-primary)] opacity-80">F</span> ملء الشاشة · <span className="text-[var(--gold-primary)] opacity-80">R</span> إعادة العرض</> : <>Press <span className="text-[var(--gold-primary)] opacity-80">?</span> for shortcuts · <span className="text-[var(--gold-primary)] opacity-80">F</span> fullscreen · <span className="text-[var(--gold-primary)] opacity-80">R</span> reset view</>} · Made by Abdullah Qatan
       </div>
 
 
