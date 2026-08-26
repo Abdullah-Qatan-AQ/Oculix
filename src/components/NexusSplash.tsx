@@ -40,7 +40,7 @@ export default function NexusSplash({ language, visible }: { language: 'ar' | 'e
         <div className="splash-orbit orbit-two"><i /><i /></div>
         <div className="splash-orbit orbit-three"><i /></div>
         <div className="splash-core-glow" />
-        <div className="splash-monogram"><span>O</span><b>X</b></div>
+        <div className="splash-monogram"><img src="/oculix-icon.svg" alt="OX" /></div>
       </div>
 
       <div className="splash-wordmark" dir="ltr"><span>O</span><span>C</span><span>U</span><span>L</span><span>I</span><span>X</span></div>

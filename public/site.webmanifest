@@ -1,1 +1,21 @@
-{"name":"","short_name":"","icons":[{"src":"/android-chrome-192x192.png","sizes":"192x192","type":"image/png"},{"src":"/android-chrome-512x512.png","sizes":"512x512","type":"image/png"}],"theme_color":"#ffffff","background_color":"#ffffff","display":"standalone"}
+{
+  "name": "Oculix Nexus — Global Vision System",
+  "short_name": "Oculix Nexus",
+  "description": "A calm global intelligence workspace for live signals, maps and reconnaissance.",
+  "start_url": "/?installed=1",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "lang": "ar",
+  "dir": "rtl",
+  "theme_color": "#07141A",
+  "background_color": "#03080E",
+  "categories": ["productivity", "utilities", "security"],
+  "icons": [
+    { "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Open global map", "short_name": "Map", "url": "/?view=map", "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }] }
+  ]
+}

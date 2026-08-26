@@ -25,6 +25,8 @@ import SettingsPanel, { type OculixLanguage, type OculixUiTheme } from '@/compon
 import NexusShell from '@/components/NexusShell';
 import NexusSplash from '@/components/NexusSplash';
 import LocaleSurface from '@/components/LocaleSurface';
+import PWAInstallPrompt from '@/components/PWAInstallPrompt';
+import MapModeDock from '@/components/MapModeDock';
 const OculixMap = dynamic(() => import('@/components/OculixMap'), { ssr: false });
 const LayerPanel = dynamic(() => import('@/components/LayerPanel'));
 const SpaceCam = dynamic(() => import('@/components/SpaceCam'), { ssr: false });
@@ -116,6 +118,7 @@ export default function Dashboard() {
   const [regionDossier, setRegionDossier] = useState<any>(null);
   const [dossierLoading, setDossierLoading] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
+  const [activeView, setActiveView] = useState<'home' | 'map'>('home');
   const [showSettings, setShowSettings] = useState(false);
   const [language, setLanguage] = useState<OculixLanguage>('ar');
   const [uiTheme, setUiTheme] = useState<OculixUiTheme>('zenith');
@@ -161,6 +164,27 @@ export default function Dashboard() {
   const [navProgress, setNavProgress] = useState<NavProgress | null>(null);
   const [watchedFlights, setWatchedFlights] = useState<WatchedFlight[]>([]);
   const [aircraftAirports, setAircraftAirports] = useState<Record<string, Airport[]>>({});
+
+  const openMapView = useCallback(() => {
+    setActiveView('map');
+    setFlyToLocation({ lat: 20, lng: 0, zoom: 2.5, ts: Date.now() });
+  }, []);
+
+  const openHomeView = useCallback(() => {
+    setActiveView('home');
+    setShowLayers(false);
+    setShowAdvancedTools(false);
+    setShowIntel(false);
+    setShowMarkets(false);
+    setShowAlerts(false);
+    setShowSpaceCam(false);
+    setShowDrawing(false);
+    setShowDirections(false);
+    setShowDesktopSearch(false);
+    setActiveCamera(null);
+    setActiveRoute(null);
+    setNavSession(null);
+  }, []);
 
   // The popup lives in raw map HTML, so it hands aircraft over through a global.
   useEffect(() => {
@@ -253,6 +277,10 @@ export default function Dashboard() {
       localStorage.setItem('oculix.preferences', JSON.stringify({ language, uiTheme, showAdvancedTools, showTicker, showGrid, reducedMotion, showLayers }));
     } catch { /* storage can be unavailable in private browsing */ }
   }, [language, uiTheme, showAdvancedTools, showTicker, showGrid, reducedMotion, showLayers]);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('view') === 'map') setActiveView('map');
+  }, []);
 
   useEffect(() => {
     try {
@@ -832,6 +860,7 @@ export default function Dashboard() {
 
       <NexusSplash language={language} visible={showSplash} />
       <LocaleSurface language={language} />
+      <PWAInstallPrompt language={language} />
 
       {/* Legacy splash retained in source only for backwards compatibility; hidden from the new experience. */}
       <div className="legacy-splash">
@@ -1030,7 +1059,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── MAP ── */}
-      <ErrorBoundary name="Map">
+      {activeView === 'map' && <ErrorBoundary name="Map">
         <OculixMap
           key={oculixTheme}
           data={data}
@@ -1065,19 +1094,25 @@ export default function Dashboard() {
           drawnPolygons={drawnPolygons}
           aircraftAirports={aircraftAirports}
         />
-      </ErrorBoundary>
+      </ErrorBoundary>}
 
-      {!showSplash && (
+      {!showSplash && activeView === 'home' && (
         <NexusShell
           language={language}
           entityCount={Object.values(data).reduce<number>((total, value) => total + (Array.isArray(value) ? value.length : 0), 0)}
           layerCount={Object.values(activeLayers).filter(Boolean).length}
           backendStatus={backendStatus}
           onSettings={() => setShowSettings(true)}
-          onLayers={() => { setShowLayers(true); setShowSettings(false); }}
-          onAdvanced={() => { setShowAdvancedTools(true); setShowSettings(false); }}
-          onReset={() => { setMapProjection('globe'); setMapStyle('dark'); setFlyToLocation({ lat: 20, lng: 0, zoom: 2.5, ts: Date.now() }); }}
+          onHome={openHomeView}
+          onMonitor={() => { openMapView(); setShowAdvancedTools(true); setShowIntel(false); setShowMarkets(false); setShowAlerts(false); setShowSpaceCam(false); }}
+          onExplore={() => { openMapView(); setShowAdvancedTools(true); setShowIntel(true); setShowMarkets(false); setShowAlerts(false); setShowSpaceCam(false); }}
+          onLayers={() => { openMapView(); setShowLayers(true); setShowSettings(false); }}
+          onAdvanced={() => { openMapView(); setShowAdvancedTools(true); setShowSettings(false); }}
+          onReset={() => { openMapView(); setMapProjection('globe'); setMapStyle('dark'); }}
         />
+      )}
+      {!showSplash && activeView === 'map' && (
+        <MapModeDock language={language} onHome={openHomeView} onLayers={() => setShowLayers(true)} onSettings={() => setShowSettings(true)} />
       )}
 
       {/* ── DIRECTIONS — opens beside the right-hand tool rail ── */}
@@ -1848,7 +1883,7 @@ export default function Dashboard() {
         setReducedMotion={setReducedMotion}
         showLayers={showLayers}
         setShowLayers={setShowLayers}
-        onResetView={() => { setMapProjection('globe'); setMapStyle('dark'); setFlyToLocation({ lat: 20, lng: 0, zoom: 2.5, ts: Date.now() }); }}
+        onResetView={() => { openMapView(); setMapProjection('globe'); setMapStyle('dark'); setFlyToLocation({ lat: 20, lng: 0, zoom: 2.5, ts: Date.now() }); }}
       />
 
       {/* Keyboard Shortcuts Overlay */}

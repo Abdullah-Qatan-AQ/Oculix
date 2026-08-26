@@ -26,3 +26,9 @@ npm run start
 ## License note
 
 The original MIT license notice is intentionally retained because the MIT license requires the copyright notice and permission notice to remain in copies or substantial portions of the software.
+
+## Functional repair release
+
+The home surface and map surface are now separate states. Home does not mount the globe; the map is opened explicitly through Open Layers, Lock Focus, Monitor, Explore, or the PWA map shortcut. Map Mode provides its own Oculix dock with Home, Layers, and Settings actions.
+
+Overview returns to Home, Monitor opens the advanced tool strip, and Explore opens the Recon toolkit. Existing panels remain in the codebase and can be reached from the map tools. The shared OX asset is `public/oculix-icon.svg`, with refreshed PNG derivatives for PWA and favicon use.

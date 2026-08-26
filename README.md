@@ -243,3 +243,9 @@ If you want to help keep the servers alive, and support us to get access to bett
 [Join our Discord to be a part of this movement!](https://discord.gg/umBykEpb98)
 
 </div>
+
+## Install as an app
+
+Oculix Nexus is installable as a PWA. Run the production server or deploy the project over HTTPS, open the site in a supported browser, and use the **Install** prompt or the browser's install command. The app manifest is available at `/site.webmanifest`, the service worker is `/sw.js`, and the map shortcut is available at `/?view=map`.
+
+On iOS, use the browser's **Add to Home Screen** command. Live feeds still require network access after installation; the service worker caches the app shell but deliberately does not cache dynamic intelligence APIs.

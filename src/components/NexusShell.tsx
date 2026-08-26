@@ -9,6 +9,9 @@ interface NexusShellProps {
   layerCount: number;
   backendStatus: string;
   onSettings: () => void;
+  onHome: () => void;
+  onMonitor: () => void;
+  onExplore: () => void;
   onLayers: () => void;
   onAdvanced: () => void;
   onReset: () => void;
@@ -61,7 +64,7 @@ const text = {
   },
 } as const;
 
-export default function NexusShell({ language, entityCount, layerCount, backendStatus, onSettings, onLayers, onAdvanced, onReset }: NexusShellProps) {
+export default function NexusShell({ language, entityCount, layerCount, backendStatus, onSettings, onHome, onMonitor, onExplore, onLayers, onAdvanced, onReset }: NexusShellProps) {
   const t = text[language];
   const [soundEnabled, setSoundEnabled] = useState(false);
   const audioRef = useRef<AudioContext | null>(null);
@@ -91,9 +94,9 @@ export default function NexusShell({ language, entityCount, layerCount, backendS
   };
 
   const navItems = [
-    { icon: LayoutDashboard, label: t.overview, active: true },
-    { icon: Radar, label: t.monitor },
-    { icon: Compass, label: t.explore },
+    { icon: LayoutDashboard, label: t.overview, active: true, handler: onHome, frequency: 520 },
+    { icon: Radar, label: t.monitor, active: false, handler: onMonitor, frequency: 410 },
+    { icon: Compass, label: t.explore, active: false, handler: onExplore, frequency: 450 },
   ];
 
   return (
@@ -103,7 +106,7 @@ export default function NexusShell({ language, entityCount, layerCount, backendS
 
       <header className="nexus-topbar">
         <div className="nexus-brand">
-          <div className="nexus-ox" aria-label="OX">O<span>X</span></div>
+          <div className="nexus-ox" aria-label="OX"><img src="/oculix-icon.svg" alt="OX" /></div>
           <div className="nexus-brand-copy"><span>{t.eyebrow}</span><strong>Oculix</strong></div>
         </div>
         <div className="nexus-live-status"><span className="nexus-live-dot" /><b>{t.live}</b><span className="nexus-live-rule" /><span className="nexus-live-clock">{new Date().toISOString().slice(11, 19)} Z</span></div>
@@ -115,7 +118,7 @@ export default function NexusShell({ language, entityCount, layerCount, backendS
 
       <nav className="nexus-rail" aria-label={t.overview}>
         <div className="nexus-rail-line" />
-        {navItems.map(({ icon: Icon, label, active }) => <button type="button" key={label} className={`nexus-nav-item ${active ? 'is-active' : ''}`} onClick={() => action(active ? onReset : onAdvanced, active ? 540 : 410)}><Icon size={17} /><span>{label}</span></button>)}
+        {navItems.map(({ icon: Icon, label, active, handler, frequency }) => <button type="button" key={label} className={`nexus-nav-item ${active ? 'is-active' : ''}`} onClick={() => action(handler, frequency)}><Icon size={17} /><span>{label}</span></button>)}
         <div className="nexus-rail-spacer" />
         <button type="button" className="nexus-nav-item" onClick={() => action(onLayers, 440)}><Layers3 size={17} /><span>{t.layers}</span></button>
       </nav>
