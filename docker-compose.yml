@@ -66,8 +66,8 @@ x-casaos:
     - amd64
     - arm64
   main: oculix
-  author: your-github-account
-  developer: your-github-account
+  author: Abdullah-Qatan
+  developer: Abdullah-Qatan
   category: Network
   description:
     en_us: >-
@@ -81,10 +81,10 @@ x-casaos:
     en_us: Real-time global OSINT intelligence dashboard
   title:
     en_us: OCULIX
-  icon: https://raw.githubusercontent.com/your-github-account/oculix/master/public/casaos-icon.png
-  thumbnail: https://raw.githubusercontent.com/your-github-account/oculix/master/public/og-image.png
+  icon: https://raw.githubusercontent.com/Abdullah-Qatan/oculix/master/public/casaos-icon.png
+  thumbnail: https://raw.githubusercontent.com/Abdullah-Qatan/oculix/master/public/og-image.png
   screenshot_link:
-    - https://raw.githubusercontent.com/your-github-account/oculix/master/public/og-image.png
+    - https://raw.githubusercontent.com/Abdullah-Qatan/oculix/master/public/og-image.png
   scheme: http
   hostname: ""
   port_map: "3000"

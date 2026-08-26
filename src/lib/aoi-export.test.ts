@@ -118,7 +118,7 @@ describe('persistence', () => {
     }]);
     const [s] = deserializeShapes(raw);
     expect(s.areaKm2).toBe(0);
-    expect(s.color).toBe('#22D3EE');
+    expect(s.color).toBe('#00E5FF');
     expect(Number.isFinite(s.createdAt)).toBe(true);
   });
 });

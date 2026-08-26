@@ -95,8 +95,8 @@ export default function SpaceCam() {
   return (
     <div className="rounded-xl border border-[var(--border-primary)] bg-[var(--bg-panel)] backdrop-blur-2xl overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
       <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--border-secondary)]/40">
-        <Radio className="w-3.5 h-3.5 text-[#22D3EE]" />
-        <span className="text-[11px] font-mono font-bold tracking-widest text-[#22D3EE]">
+        <Radio className="w-3.5 h-3.5 text-[#00E5FF]" />
+        <span className="text-[11px] font-mono font-bold tracking-widest text-[#00E5FF]">
           LIVE FROM SPACE
         </span>
         <span className="ml-auto flex items-center gap-1">
@@ -106,7 +106,7 @@ export default function SpaceCam() {
         <button
           onClick={() => setExpanded(true)}
           title="Expand — a bigger player is what makes YouTube serve HD"
-          className="ml-1 p-1 rounded hover:bg-[var(--hover-accent)] text-[var(--text-muted)] hover:text-[#22D3EE] transition-colors"
+          className="ml-1 p-1 rounded hover:bg-[var(--hover-accent)] text-[var(--text-muted)] hover:text-[#00E5FF] transition-colors"
         >
           <Maximize2 className="w-3 h-3" />
         </button>
@@ -125,7 +125,7 @@ export default function SpaceCam() {
             so the panel says so rather than looking broken. */}
         <button
           onClick={() => setExpanded(true)}
-          className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/70 text-[9px] font-mono tracking-wider text-[#22D3EE] opacity-0 group-hover/player:opacity-100 transition-opacity"
+          className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/70 text-[9px] font-mono tracking-wider text-[#00E5FF] opacity-0 group-hover/player:opacity-100 transition-opacity"
         >
           EXPAND FOR HD ↗
         </button>
@@ -139,7 +139,7 @@ export default function SpaceCam() {
               onClick={() => setActive(f)}
               className={`flex-1 px-2 py-1.5 rounded text-[9px] font-mono tracking-wider transition-colors border ${
                 active.id === f.id
-                  ? 'border-[#22D3EE]/40 bg-[#22D3EE]/15 text-[#22D3EE]'
+                  ? 'border-[#00E5FF]/40 bg-[#00E5FF]/15 text-[#00E5FF]'
                   : 'border-transparent text-[var(--text-muted)] hover:bg-[var(--hover-accent)]'
               }`}
             >
@@ -160,7 +160,7 @@ export default function SpaceCam() {
           href={`https://www.youtube.com/watch?v=${active.videoId}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1 px-2 py-1 rounded border border-[var(--border-secondary)]/40 text-[9px] font-mono text-[var(--text-muted)] hover:text-[#22D3EE] hover:border-[#22D3EE]/40 transition-colors flex-shrink-0"
+          className="flex items-center gap-1 px-2 py-1 rounded border border-[var(--border-secondary)]/40 text-[9px] font-mono text-[var(--text-muted)] hover:text-[#00E5FF] hover:border-[#00E5FF]/40 transition-colors flex-shrink-0"
         >
           SOURCE <ExternalLink className="w-2.5 h-2.5" />
         </a>
@@ -176,8 +176,8 @@ export default function SpaceCam() {
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center gap-2 mb-2">
-              <Radio className="w-4 h-4 text-[#22D3EE]" />
-              <span className="text-[11px] font-mono font-bold tracking-widest text-[#22D3EE]">
+              <Radio className="w-4 h-4 text-[#00E5FF]" />
+              <span className="text-[11px] font-mono font-bold tracking-widest text-[#00E5FF]">
                 LIVE FROM SPACE
               </span>
               <span className="text-[11px] font-mono text-[var(--text-muted)]">· {active.detail}</span>
@@ -218,7 +218,7 @@ export default function SpaceCam() {
                   onClick={() => setActive(f)}
                   className={`px-3 py-1.5 rounded text-[11px] font-mono tracking-wider transition-colors border ${
                     active.id === f.id
-                      ? 'border-[#22D3EE]/40 bg-[#22D3EE]/15 text-[#22D3EE]'
+                      ? 'border-[#00E5FF]/40 bg-[#00E5FF]/15 text-[#00E5FF]'
                       : 'border-white/10 text-[var(--text-muted)] hover:bg-white/10'
                   }`}
                 >

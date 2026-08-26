@@ -214,10 +214,10 @@ export default function LiveAlerts({ data, onLocate, onWatchFeed }: LiveAlertsPr
                             )}
                           </div>
                           {alert.url && (
-                            <a
-                              href={alert.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            <a 
+                              href={alert.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
                               className="inline-flex items-center py-1.5 px-1.5 -mx-1 rounded text-[9px] font-mono text-[var(--cyan-primary)] hover:underline hover:bg-[var(--cyan-primary)]/10"
                               onClick={(e) => e.stopPropagation()}
                             >

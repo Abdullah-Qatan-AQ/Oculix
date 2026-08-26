@@ -173,7 +173,7 @@ function connectAisStream() {
         existing.speed = report.Sog;
         existing.heading = report.TrueHeading || report.Cog;
         existing.timestamp = Date.now();
-      }
+      } 
       else if (parsed.MessageType === "ShipStaticData" && parsed.Message?.ShipStaticData) {
         const staticData = parsed.Message.ShipStaticData;
         existing.name = staticData.Name ? staticData.Name.trim() : existing.name;
@@ -254,7 +254,7 @@ export async function GET() {
     const congestionRatio = nearbyCount > 0 ? waitingCount / nearbyCount : 0;
     let congestionStatus = 'NORMAL';
     let estDwellTime = '1-2 Days';
-
+    
     if (congestionRatio > 0.6 || waitingCount > 30) {
       congestionStatus = 'SEVERE';
       estDwellTime = '7+ Days';
@@ -276,7 +276,7 @@ export async function GET() {
     for (let i = 0; i < ships.length; i++) {
       if (getDistanceKm(choke.lat, choke.lng, ships[i].lat, ships[i].lng) < 100) nearbyCount++;
     }
-
+    
     // Dynamically adjust risk based on live ship concentration
     let dynamicRisk = choke.risk;
     if (nearbyCount > 50) dynamicRisk = 'CRITICAL';
@@ -299,7 +299,7 @@ export async function GET() {
     total_ships: ships.length,
     timestamp: new Date().toISOString(),
   }, {
-    headers: {
+    headers: { 
       'Cache-Control': 'no-store, no-cache, must-revalidate',
       'Pragma': 'no-cache'
     },

@@ -22,7 +22,7 @@ const API_SECTIONS = [
 ];
 
 const ALL_SECTIONS = [...GUIDE_SECTIONS, ...API_SECTIONS];
-const FALLBACK_ORIGIN = 'https://oculix.example';
+const FALLBACK_ORIGIN = 'https://oculixai.live';
 
 export default function DocsClient() {
   const [active, setActive] = useState('overview');
@@ -131,7 +131,7 @@ export default function DocsClient() {
         className="pointer-events-none fixed inset-0 z-0"
         style={{
           background:
-            'radial-gradient(900px 480px at 12% -8%, rgba(139,92,246,0.07), transparent 65%), radial-gradient(760px 420px at 92% 4%, rgba(34,211,238,0.05), transparent 62%)',
+            'radial-gradient(900px 480px at 12% -8%, rgba(212,175,55,0.07), transparent 65%), radial-gradient(760px 420px at 92% 4%, rgba(0,229,255,0.05), transparent 62%)',
         }}
       />
 
@@ -143,7 +143,7 @@ export default function DocsClient() {
           <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
             <svg
               viewBox="0 0 650 500"
-              className="w-6 h-6 text-[var(--gold-primary)] transition-all group-hover:drop-shadow-[0_0_10px_rgba(139,92,246,0.6)]"
+              className="w-6 h-6 text-[var(--gold-primary)] transition-all group-hover:drop-shadow-[0_0_10px_rgba(212,175,55,0.6)]"
               fill="currentColor"
               aria-hidden="true"
             >
@@ -267,7 +267,7 @@ export default function DocsClient() {
             <h1 className="text-[38px] md:text-[52px] leading-[1.05] font-bold tracking-[-0.02em] mb-5">
               <span className="text-[var(--text-heading)]">Build on the</span>
               <br />
-              <span className="bg-gradient-to-r from-[var(--gold-primary)] via-[#C4B5FD] to-[var(--cyan-primary)] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[var(--gold-primary)] via-[#F0D060] to-[var(--cyan-primary)] bg-clip-text text-transparent">
                 OCULIX platform
               </span>
             </h1>
@@ -598,7 +598,7 @@ docker compose up -d`}</Pre>
             {[
               { href: 'https://github.com/your-github-account/oculix', label: 'GitHub' },
               { href: 'https://discord.gg/EPaFD5FFKf', label: 'Discord' },
-              { href: 'https://x.com/oculix_app', label: 'X' },
+              { href: 'https://x.com/soulsimplifai', label: 'X' },
               { href: 'https://github.com/your-github-account/oculix/issues', label: 'Report an issue' },
             ].map(l => (
               <a

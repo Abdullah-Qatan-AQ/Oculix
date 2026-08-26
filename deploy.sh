@@ -49,5 +49,5 @@ echo ""
 
 echo -e "${CYAN}╔══════════════════════════════════════════╗${NC}"
 echo -e "${CYAN}║     ✅ DEPLOYMENT COMPLETE               ║${NC}"
-echo -e "${CYAN}║     https://oculix.example is live         ║${NC}"
+echo -e "${CYAN}║     https://oculixai.live is live         ║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════════╝${NC}"

@@ -106,7 +106,7 @@ export async function GET(req: Request) {
 
   let query = number.trim();
   const digitsOnly = query.replace(/\D/g, '');
-
+  
   // Auto-detect NANP (+1 for US/Canada) if it's exactly 10 digits
   if (digitsOnly.length === 10 && !query.startsWith('+') && !query.startsWith('00')) {
       query = '+1' + digitsOnly;
@@ -117,7 +117,7 @@ export async function GET(req: Request) {
   try {
       const parsedNumber = phoneUtil.parse(query);
       const isValid = phoneUtil.isValidNumber(parsedNumber);
-
+      
       const regionCode = phoneUtil.getRegionCodeForNumber(parsedNumber) || 'Unknown';
       const countryCode = parsedNumber.getCountryCode();
       const nationalNumber = parsedNumber.getNationalNumber();
@@ -145,7 +145,7 @@ export async function GET(req: Request) {
       }
 
       let coords = REGION_COORDS[regionCode];
-
+      
       // Override with precise area code coordinates for NANP
       if (countryCode === 1) {
           const areaCode = String(nationalNumber).substring(0, 3);
@@ -169,7 +169,7 @@ export async function GET(req: Request) {
       });
 
   } catch (err: any) {
-      return NextResponse.json({
+      return NextResponse.json({ 
           query: number,
           valid: false,
           error: err.message,

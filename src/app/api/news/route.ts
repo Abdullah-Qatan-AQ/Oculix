@@ -3,7 +3,7 @@ import crypto from 'crypto';
 
 /**
  * OCULIX — Military-Grade Intelligence API
- * Fetches Telegram OSINT feeds directly, with a failsafe fallback
+ * Fetches Telegram OSINT feeds directly, with a failsafe fallback 
  * to traditional intelligence sources if Telegram blocks the IP.
  */
 
@@ -57,7 +57,7 @@ function parseTelegramHTML(html: string, channel: string): any[] {
     const textRegex = /<div class="tgme_widget_message_text[^>]*>([\s\S]*?)<\/div>/i;
     const textMatch = blockHtml.match(textRegex);
     if (!textMatch) continue;
-
+    
     const text = textMatch[1].replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').replace(/&quot;/g, '"').replace(/&amp;/g, '&').trim();
     if (!text || text.length < 10) continue;
 
@@ -87,7 +87,7 @@ function parseRSSItems(xml: string, sourceName: string): any[] {
 
     const title = getTag('title').replace(/<[^>]+>/g, '');
     const desc = getTag('description').replace(/<[^>]+>/g, '').replace(/&quot;/g, '"');
-
+    
     items.push({
       title: title.length > 100 ? title.substring(0, 100) + '...' : title,
       description: desc,
@@ -103,9 +103,9 @@ export async function GET() {
   try {
     const feedPromises = TELEGRAM_CHANNELS.map(async (channel) => {
       try {
-        const res = await fetch(`https://t.me/s/${channel}`, {
-          signal: AbortSignal.timeout(8000),
-          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
+        const res = await fetch(`https://t.me/s/${channel}`, { 
+          signal: AbortSignal.timeout(8000), 
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' } 
         });
         if (!res.ok) return [];
         const html = await res.text();
@@ -130,7 +130,7 @@ export async function GET() {
           return parseRSSItems(xml, source).slice(0, 5);
         } catch { return []; }
       });
-
+      
       const fallbackResults = await Promise.allSettled(fallbackPromises);
       for (const result of fallbackResults) {
         if (result.status === 'fulfilled') allArticles.push(...result.value);

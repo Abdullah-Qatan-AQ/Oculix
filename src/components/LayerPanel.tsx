@@ -344,9 +344,9 @@ function LayerPanel({ data, activeLayers, setActiveLayers, isMobile, theme = 'co
                   <span
                     className="absolute top-1 right-1 min-w-[13px] h-[13px] px-[3px] rounded-full flex items-center justify-center text-[9px] font-mono tabular-nums leading-none"
                     style={{
-                      background: 'rgba(34,211,238,0.9)',
+                      background: 'rgba(0,229,255,0.9)',
                       color: '#04040A',
-                      boxShadow: '0 0 6px rgba(34,211,238,0.5)',
+                      boxShadow: '0 0 6px rgba(0,229,255,0.5)',
                     }}
                   >
                     {activeCount}

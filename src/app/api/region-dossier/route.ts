@@ -70,33 +70,33 @@ export async function GET(request: Request) {
           const safe = countryName.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
           const sparql = `
           SELECT ?leaderLabel ?positionLabel ?population ?area ?capitalLabel ?regionLabel ?flagUrl (GROUP_CONCAT(DISTINCT ?langLabel; separator=", ") AS ?languages) (GROUP_CONCAT(DISTINCT ?currLabel; separator=", ") AS ?currencies)
-          WHERE {
-            ?country wdt:P31/wdt:P279* wd:Q6256;
-                     rdfs:label "${safe}"@en.
-            OPTIONAL {
-              ?country wdt:P6 ?leader.
+          WHERE { 
+            ?country wdt:P31/wdt:P279* wd:Q6256; 
+                     rdfs:label "${safe}"@en. 
+            OPTIONAL { 
+              ?country wdt:P6 ?leader. 
               OPTIONAL { ?leader wdt:P39 ?position. }
             }
-            OPTIONAL { ?country wdt:P1082 ?population. }
-            OPTIONAL { ?country wdt:P2046 ?area. }
-            OPTIONAL { ?country wdt:P36 ?capital. }
-            OPTIONAL { ?country wdt:P30 ?region. }
-            OPTIONAL { ?country wdt:P37 ?lang. }
-            OPTIONAL { ?country wdt:P38 ?curr. }
-            OPTIONAL { ?country wdt:P41 ?flagUrl. }
-            SERVICE wikibase:label {
-              bd:serviceParam wikibase:language "en".
+            OPTIONAL { ?country wdt:P1082 ?population. } 
+            OPTIONAL { ?country wdt:P2046 ?area. } 
+            OPTIONAL { ?country wdt:P36 ?capital. } 
+            OPTIONAL { ?country wdt:P30 ?region. } 
+            OPTIONAL { ?country wdt:P37 ?lang. } 
+            OPTIONAL { ?country wdt:P38 ?curr. } 
+            OPTIONAL { ?country wdt:P41 ?flagUrl. } 
+            SERVICE wikibase:label { 
+              bd:serviceParam wikibase:language "en". 
               ?leader rdfs:label ?leaderLabel.
               ?position rdfs:label ?positionLabel.
-              ?capital rdfs:label ?capitalLabel.
-              ?region rdfs:label ?regionLabel.
-              ?lang rdfs:label ?langLabel.
-              ?curr rdfs:label ?currLabel.
-            }
-          }
+              ?capital rdfs:label ?capitalLabel. 
+              ?region rdfs:label ?regionLabel. 
+              ?lang rdfs:label ?langLabel. 
+              ?curr rdfs:label ?currLabel. 
+            } 
+          } 
           GROUP BY ?leaderLabel ?positionLabel ?population ?area ?capitalLabel ?regionLabel ?flagUrl
           LIMIT 1`;
-
+          
           const res = await fetch(
             `https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(sparql)}`,
             {

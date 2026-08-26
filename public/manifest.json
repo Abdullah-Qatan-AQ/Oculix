@@ -5,7 +5,7 @@
   "start_url": "/",
   "display": "standalone",
   "background_color": "#06060C",
-  "theme_color": "#8B5CF6",
+  "theme_color": "#D4AF37",
   "orientation": "landscape-primary",
   "categories": ["security", "intelligence", "analytics", "news"],
   "icons": [

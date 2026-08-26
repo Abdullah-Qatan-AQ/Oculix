@@ -129,7 +129,7 @@ export function deserializeShapes(raw: string | null): DrawnShape[] {
       geojson: s.geojson,
       areaKm2: Number(s.areaKm2) || 0,
       perimeterKm: Number(s.perimeterKm) || 0,
-      color: typeof s.color === 'string' ? s.color : '#22D3EE',
+      color: typeof s.color === 'string' ? s.color : '#00E5FF',
       createdAt: Number(s.createdAt) || Date.now(),
       meta: s.meta,
     });

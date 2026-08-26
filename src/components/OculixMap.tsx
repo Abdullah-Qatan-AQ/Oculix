@@ -3,6 +3,19 @@ import { buildGeometry, closeRing, drawReducer, initialDrawState, measure, type 
 
 import { useEffect, useRef, useState, useCallback, memo } from 'react';
 import maplibregl from 'maplibre-gl';
+import { createSatelliteLayer, parseColor, type SatPoint } from '@/lib/satellite-layer';
+
+/** The catalogue fields the satellite layer and its popup actually read. */
+interface SatelliteRow {
+  name: string;
+  lat: number;
+  lng: number;
+  alt: number;
+  color?: string;
+  mission?: string;
+  category?: string;
+  noradId?: string;
+}
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 interface OculixMapProps {
@@ -84,6 +97,13 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
   const prevStyleRef = useRef(mapStyle);
   const prevDrawnPolygonsRef = useRef<string[]>([]);
   const prevArcgisLayersRef = useRef<string[]>([]);
+  const satLayerRef = useRef<ReturnType<typeof createSatelliteLayer> | null>(null);
+  // pick() returns an index into the array last handed to setPoints, so the
+  // matching catalogue rows are kept in the same order to resolve it.
+  const satRowsRef = useRef<SatelliteRow[]>([]);
+  /** Index of the satellite whose orbit is on screen, so a late reply for a
+   *  previous selection can be discarded. */
+  const satPickedRef = useRef<number | null>(null);
   const drawingCoordsRef = useRef<number[][]>([]);
 
   // Create aircraft icon on canvas (for WebGL symbol layer)
@@ -129,15 +149,15 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
     // ── DEMO MODE SPINNING ──
     let spinReq: number | undefined = undefined;
     let isSpinning = false;
-
+    
     const startSpinning = () => {
       if (!map) return;
       isSpinning = true;
       let lastTime = performance.now();
-
+      
       const frame = (time: number) => {
         if (!isSpinning) return;
-
+        
         // Only spin if the user is not actively dragging or zooming the map
         if (!map.isMoving() && !map.isZooming()) {
           const dt = time - lastTime;
@@ -146,11 +166,11 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
           center.lng += (0.5 * dt) / 1000;
           map.setCenter(center);
         }
-
+        
         lastTime = time;
         spinReq = requestAnimationFrame(frame);
       };
-
+      
       spinReq = requestAnimationFrame(frame);
     };
 
@@ -172,15 +192,16 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-
+    
     // Select basemap style
     const styleUrl = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
-    const map = new maplibregl.Map({
-      container: containerRef.current,
+    const container = containerRef.current;
+    const baseOptions = {
+      container,
       style: styleUrl,
-      center: [25.48, 42.70], zoom: 6.5, minZoom: 1.5, maxZoom: 18,
-      attributionControl: false,
+      center: [25.48, 42.70] as [number, number], zoom: 6.5, minZoom: 1.5, maxZoom: 18,
+      attributionControl: false as const,
       maxPitch: 85,
       transformRequest: (url: string) => {
         // Route all CARTO CDN requests through the internal Next.js proxy API
@@ -190,28 +211,54 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
         }
         return { url };
       },
-    });
+    };
+
+    // MapLibre asks for a high-performance WebGL2 context and throws outright if it
+    // cannot get one. Some machines refuse that exact request while still granting a
+    // plainer context — a blocklisted discrete GPU, a driver Chrome only trusts for
+    // WebGL1 — so walk down to weaker requests before giving up.
+    const attributeFallbacks: maplibregl.MapOptions['canvasContextAttributes'][] = [
+      undefined,
+      { powerPreference: 'low-power', failIfMajorPerformanceCaveat: false },
+      { contextType: 'webgl', powerPreference: 'low-power', failIfMajorPerformanceCaveat: false },
+    ];
+
+    let map: maplibregl.Map | undefined;
+    for (const canvasContextAttributes of attributeFallbacks) {
+      try {
+        map = new maplibregl.Map(
+          canvasContextAttributes ? { ...baseOptions, canvasContextAttributes } : baseOptions
+        );
+        break;
+      } catch (e) {
+        // A failed constructor leaves its canvas behind; the next attempt needs a clean container.
+        container.innerHTML = '';
+        if (canvasContextAttributes === attributeFallbacks[attributeFallbacks.length - 1]) throw e;
+        console.warn('[OCULIX] WebGL context rejected, retrying with weaker attributes:', e instanceof Error ? e.message : e);
+      }
+    }
+    if (!map) return;
 
     map.on('load', () => {
       mapRef.current = map;
-
+      
       // Theme colors
       const isGhost = theme === 'ghost';
       const phantomPurple = '#B388FF';
       const phantomDark = '#1A0040';
       const cameraColor = isGhost ? '#B388FF' : '#00E676';
-      const flightCom = isGhost ? phantomPurple : '#22D3EE';
+      const flightCom = isGhost ? phantomPurple : '#00E5FF';
       const flightPriv = isGhost ? phantomPurple : '#FFD700';
       const flightGov = isGhost ? phantomPurple : '#FF9500';
       const flightMil = isGhost ? phantomPurple : '#FF3D3D';
 
       // Create icons — OCULIX Unified Palette
-      createIcon(map, 'plane-cyan', flightCom, 24);
-      createIcon(map, 'plane-green', flightPriv, 24);
-      createIcon(map, 'plane-pink', flightGov, 24);
-      createIcon(map, 'plane-red', flightMil, 24);
-      createIcon(map, 'plane-grey', isGhost ? phantomPurple : '#546E7A', 24);
-      createDot(map, 'dot-gold', isGhost ? phantomPurple : '#8B5CF6', 8);
+      createIcon(map, 'plane-cyan', flightCom, 24);   
+      createIcon(map, 'plane-green', flightPriv, 24);   
+      createIcon(map, 'plane-pink', flightGov, 24);    
+      createIcon(map, 'plane-red', flightMil, 24);     
+      createIcon(map, 'plane-grey', isGhost ? phantomPurple : '#546E7A', 24);    
+      createDot(map, 'dot-gold', isGhost ? phantomPurple : '#D4AF37', 8);
       createDot(map, 'dot-red', isGhost ? phantomPurple : '#D32F2F', 10);
       createDot(map, 'dot-orange', isGhost ? phantomPurple : '#E65100', 10);
       createDot(map, 'dot-green', isGhost ? phantomPurple : '#26A69A', 10);
@@ -378,7 +425,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
         'circle-radius': ['interpolate',['linear'],['get','articles'], 1,3, 10,5, 50,8, 200,12],
         'circle-color': ['match',['get','quad'],
           1,'#00E676',   // verbal cooperation
-          2,'#22D3EE',   // material cooperation
+          2,'#00E5FF',   // material cooperation
           3,'#FF9500',   // verbal conflict
           4,'#FF3D3D',   // material conflict
           '#9B978E'],
@@ -396,7 +443,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
       map.addLayer({ id: 'cf-outage-dots', type: 'circle', source: 'cf-outages', paint: {
         'circle-radius': ['interpolate',['linear'],['zoom'], 1,4, 5,6, 10,9],
         // Resolved outages read cooler than ongoing ones.
-        'circle-color': ['case',['get','ongoing'],'#FFB300','#6D28D9'],
+        'circle-color': ['case',['get','ongoing'],'#FFB300','#8B7325'],
         'circle-opacity': 0.9,
         'circle-stroke-width': 1.5, 'circle-stroke-color': '#000000', 'circle-stroke-opacity': 0.7,
       }});
@@ -441,10 +488,10 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
       }});
       map.addLayer({ id: 'infra-dots', type: 'circle', source: 'infrastructure', paint: {
         'circle-radius': ['interpolate',['linear'],['zoom'], 1,4, 5,6, 10,10],
-        'circle-color': ['case',
+        'circle-color': ['case', 
           ['in', 'SEISMIC RISK', ['get', 'status']], '#E65100',
-          ['==', ['get','status'], 'Active Conflict Zone'], '#D32F2F',
-          ['==', ['get','status'], 'Destroyed / Decommissioning'], '#546E7A',
+          ['==', ['get','status'], 'Active Conflict Zone'], '#D32F2F', 
+          ['==', ['get','status'], 'Destroyed / Decommissioning'], '#546E7A', 
           '#26A69A'
         ],
         'circle-opacity': 0.75,
@@ -455,13 +502,25 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
         'text-offset': [0, 2], 'text-max-width': 14, 'text-allow-overlap': false,
       }, paint: { 'text-color': ['case', ['in', 'SEISMIC RISK', ['get', 'status']], '#E65100', '#26A69A'], 'text-halo-color': '#000', 'text-halo-width': 1, 'text-opacity': 0.7 }});
 
-      // Satellites
-      map.addLayer({ id: 'sat-glow', type: 'circle', source: 'satellites', paint: {
+      // Satellites.
+      // Every satellite is drawn once, by the custom 3D layer below, at its
+      // altitude. These two circle layers are kept defined — the source feeds
+      // the 3D layer and other code refers to them — but hidden: drawing the
+      // same satellite both flat on the ground and again up at altitude is
+      // what made the map read as half 2D and half 3D.
+      // Hit-testing is handled by the 3D layer's own GPU pick pass, since
+      // queryRenderedFeatures cannot see into a custom WebGL layer.
+      map.addLayer({ id: 'sat-glow', type: 'circle', source: 'satellites', layout: { visibility: 'none' }, paint: {
         'circle-radius': ['interpolate',['linear'],['zoom'], 1,3, 5,6], 'circle-color': ['get','color'], 'circle-opacity': 0.3, 'circle-blur': 1,
       }});
-      map.addLayer({ id: 'sat-dots', type: 'circle', source: 'satellites', paint: {
+      map.addLayer({ id: 'sat-dots', type: 'circle', source: 'satellites', layout: { visibility: 'none' }, paint: {
         'circle-radius': ['interpolate',['linear'],['zoom'], 1,1.5, 5,3], 'circle-color': ['get','color'], 'circle-opacity': 1.0,
       }});
+      // The spacecraft themselves, lifted to their orbit.
+      if (!map.getLayer('sat-3d')) {
+        satLayerRef.current = createSatelliteLayer('sat-3d');
+        map.addLayer(satLayerRef.current as any);
+      }
 
       // Maritime — ports & naval bases — ocean teal
       map.addLayer({ id: 'maritime-glow', type: 'circle', source: 'maritime', paint: {
@@ -724,7 +783,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
           <div id="ac-${idSafe(p.icao24||'')}" style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);">
             <span style="color:#5C5A54;font-size:9px;letter-spacing:0.1em;">IDENTIFYING AIRFRAME…</span>
           </div>
-          <button onclick="window.oculixWatchFlight && window.oculixWatchFlight({ icao24: '${idSafe(p.icao24||'')}', callsign: '${idSafe(cs)}' })" style="width:100%;margin-top:8px;padding:6px 12px;background:rgba(34,211,238,0.10);border:1px solid rgba(34,211,238,0.35);color:#7FE9FF;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:bold;letter-spacing:0.1em;border-radius:4px;cursor:pointer;">+ WATCH THIS AIRCRAFT</button>
+          <button onclick="window.oculixWatchFlight && window.oculixWatchFlight({ icao24: '${idSafe(p.icao24||'')}', callsign: '${idSafe(cs)}' })" style="width:100%;margin-top:8px;padding:6px 12px;background:rgba(0,229,255,0.10);border:1px solid rgba(0,229,255,0.35);color:#7FE9FF;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:bold;letter-spacing:0.1em;border-radius:4px;cursor:pointer;">+ WATCH THIS AIRCRAFT</button>
           <div id="${routeLoadingId}" style="margin-top:8px;padding:6px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;">
             <span style="color:#5C5A54;font-size:9px;letter-spacing:0.1em;">RESOLVING ROUTE…</span>
           </div>
@@ -843,19 +902,84 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
     });
 
     // ── Satellites (SatNOGS powered) ──
-    map.on('click', 'sat-dots', e => {
-      if (!e.features?.length) return;
-      const p = e.features[0].properties as any;
-      const coords = (e.features[0].geometry as any).coordinates;
-      popup(coords, `<div style="${pStyle}border:1px solid rgba(139,92,246,0.3);">
-        <div style="color:#8B5CF6;font-size:12px;font-weight:700;letter-spacing:0.1em;margin-bottom:4px;">🛰️ ${htmlEsc(p.name)}</div>
+    // Layers with their own click handlers. The satellite pick defers to
+    // these, and to nothing else — the basemap is not a click target.
+    const CLICKABLE_LAYERS = new Set(['conflict-icons','cctv-dots','eq-circles','fires-heat',
+      'gdelt-dots','weather-dots','infra-dots','maritime-dots','choke-dots','news-dots',
+      'balloon-dots','rad-dots','ship-dots','sweep-device-dots','scan-targets-dots',
+      'sdk-sea','sdk-air','sdk-intel','malware-dots','cyber-heads','gdelt-events-dots',
+      'cf-outage-dots','cf-attack-dots','flight-dots','military-dots','jet-dots','private-dots']);
+
+    // Satellites are picked on the GPU: the pick pass runs the same vertex
+    // shader as the visible one, so the target is always exactly where the
+    // marker was drawn — including its altitude. A ground-projected hit test
+    // would put the target under the satellite instead of on it.
+    map.on('click', e => {
+      const layer = satLayerRef.current;
+      if (!layer) return;
+      // Defer to any layer that has its own click handler, so a camera or an
+      // aircraft under the cursor is not stolen by a satellite behind it.
+      // Only those layers count: querying every feature matches the basemap
+      // land and water fills at essentially any point on the globe, which
+      // made this bail out every single time.
+      const hits = map.queryRenderedFeatures(e.point);
+      if (hits.some(f => f.layer?.id && CLICKABLE_LAYERS.has(f.layer.id))) return;
+      const idx = layer.pick(e.point.x, e.point.y);
+      if (idx == null) return;
+      const p = satRowsRef.current[idx];
+      if (!p) return;
+
+      // Draw the selected satellite's orbit. Fetched per click rather than
+      // bundled with the catalogue: that payload is already megabytes, and an
+      // operator looks at one orbit at a time.
+      layer.setOrbit(null);
+      layer.setSelected(null);
+      if (p.noradId) {
+        const wanted = p.noradId;
+        fetch(`/api/satellites/orbit?id=${encodeURIComponent(wanted)}`)
+          .then(r => (r.ok ? r.json() : null))
+          .then(d => {
+            // A slower reply for a satellite the operator has already moved on
+            // from must not draw over the one they are looking at now.
+            if (!d?.segments || satRowsRef.current[satPickedRef.current ?? -1]?.noradId !== wanted) return;
+            layer.setOrbit(
+              d.segments.map((seg: number[][]) => seg.map(([lng, lat, altKm]) => ({ lng, lat, altKm }))),
+              parseColor(p.color),
+            );
+          })
+          .catch(() => { /* no track is fine; the satellite still shows */ });
+      }
+      satPickedRef.current = idx;
+      layer.setSelected(idx);
+      popup([p.lng, p.lat], `<div style="${pStyle}border:1px solid rgba(212,175,55,0.3);">
+        <div style="color:#D4AF37;font-size:12px;font-weight:700;letter-spacing:0.1em;margin-bottom:4px;">🛰️ ${htmlEsc(p.name)}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;font-size:9px;margin-bottom:8px;">
           <div><span style="color:#5C5A54;">MISSION</span><br/><span style="color:${colorSafe(p.color)};">${htmlEsc(p.mission||'Unknown')}</span></div>
-          <div><span style="color:#5C5A54;">ALT</span><br/><span style="color:#22D3EE;">${p.alt ? p.alt+' km' : '—'}</span></div>
-          <div><span style="color:#5C5A54;">POS</span><br/><span style="color:#E8E6E0;">${coords[1].toFixed(2)}°, ${coords[0].toFixed(2)}°</span></div>
+          <div><span style="color:#5C5A54;">ALT</span><br/><span style="color:#00E5FF;">${p.alt ? p.alt+' km' : '—'}</span></div>
+          <div><span style="color:#5C5A54;">POS</span><br/><span style="color:#E8E6E0;">${p.lat.toFixed(2)}°, ${p.lng.toFixed(2)}°</span></div>
         </div>
-        ${p.noradId ? `<a href="https://www.n2yo.com/satellite/?s=${p.noradId}" target="_blank" style="display:block;text-align:center;padding:4px;margin-top:6px;font-size:8px;font-family:monospace;letter-spacing:0.1em;text-decoration:none;color:#22D3EE;border:1px solid rgba(34,211,238,0.4);background:rgba(34,211,238,0.1);border-radius:2px;cursor:pointer;">📡 TRACK ON N2YO</a>` : ''}
+        ${p.noradId ? `<a href="https://www.n2yo.com/satellite/?s=${p.noradId}" target="_blank" style="display:block;text-align:center;padding:4px;margin-top:6px;font-size:8px;font-family:monospace;letter-spacing:0.1em;text-decoration:none;color:#00E5FF;border:1px solid rgba(0,229,255,0.4);background:rgba(0,229,255,0.1);border-radius:2px;cursor:pointer;">📡 TRACK ON N2YO</a>` : ''}
       </div>`);
+    });
+
+    // The cursor should say a satellite is clickable, like every other layer.
+    // Throttled to one test per frame: mousemove fires far faster than the
+    // screen updates, and each pick is a full offscreen re-render of the
+    // whole catalogue — measured at 1-2 ms with ~19,000 satellites.
+    let hoverQueued = false;
+    map.on('mousemove', e => {
+      const layer = satLayerRef.current;
+      if (!layer || hoverQueued) return;
+      hoverQueued = true;
+      requestAnimationFrame(() => {
+        hoverQueued = false;
+        const canvas = map.getCanvas();
+        // Never fight another layer that has already claimed the cursor.
+        if (canvas.style.cursor && canvas.style.cursor !== 'pointer') return;
+        const over = layer.pick(e.point.x, e.point.y) != null;
+        if (over) canvas.style.cursor = 'pointer';
+        else if (canvas.style.cursor === 'pointer') canvas.style.cursor = '';
+      });
     });
 
     // ── Fires (with NASA FIRMS link) ──
@@ -880,7 +1004,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
       const coords = (e.features[0].geometry as any).coordinates;
       const tType = (p.threat_type || 'MALWARE').toUpperCase();
       const statusColor = p.status === 'online' ? '#39FF14' : '#FF1744';
-
+      
       popup(coords, `<div style="${pStyle}border:1px solid rgba(255,23,68,0.4);box-shadow:inset 0 0 12px rgba(255,23,68,0.1);">
         <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,23,68,0.3);padding-bottom:6px;margin-bottom:8px;">
           <div style="color:#FF1744;font-size:12px;font-weight:700;letter-spacing:0.1em;text-shadow:0 0 4px rgba(255,23,68,0.5);">[ ${htmlEsc(tType)} ]</div>
@@ -888,7 +1012,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
         </div>
         <div style="color:#E8E6E0;font-size:11px;font-weight:bold;margin-bottom:10px;">${htmlEsc(p.malware || 'Unidentified Threat Payload')}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:9px;margin-bottom:12px;background:rgba(0,0,0,0.3);padding:6px;border-radius:4px;">
-          <div><span style="color:#5C5A54;">TARGET IP</span><br/><span style="color:#22D3EE;font-family:monospace;">${htmlEsc(p.ip)}</span></div>
+          <div><span style="color:#5C5A54;">TARGET IP</span><br/><span style="color:#00E5FF;font-family:monospace;">${htmlEsc(p.ip)}</span></div>
           <div><span style="color:#5C5A54;">STATUS</span><br/><span style="color:${statusColor};">${(p.status||'UNKNOWN').toUpperCase()}</span></div>
         </div>
         <div style="display:flex;gap:6px;">
@@ -899,7 +1023,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
 
 
     // ── GDELT 2.0 Events ──
-    const QUAD_COLOR: Record<string, string> = { '1': '#00E676', '2': '#22D3EE', '3': '#FF9500', '4': '#FF3D3D' };
+    const QUAD_COLOR: Record<string, string> = { '1': '#00E676', '2': '#00E5FF', '3': '#FF9500', '4': '#FF3D3D' };
     map.on('click', 'gdelt-events-dots', e => {
       if (!e.features?.length) return;
       const p = e.features[0].properties as any;
@@ -932,7 +1056,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
       const coords = (e.features[0].geometry as any).coordinates;
       // MapLibre serialises feature properties, so booleans can arrive as strings.
       const ongoing = p.ongoing === true || p.ongoing === 'true';
-      const accent = ongoing ? '#FFB300' : '#6D28D9';
+      const accent = ongoing ? '#FFB300' : '#8B7325';
       const src = urlSafe(p.url);
       popup(coords, `
       <div style="${pStyle}border:1px solid ${accent}66;min-width:250px;">
@@ -982,7 +1106,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
       if (!e.features?.length) return;
       const p = e.features[0].properties as any;
       const coords = (e.features[0].geometry as any).coordinates;
-
+      
       // These are GDACS alerts and each one carries its own report URL. This
       // used to guess a Liveuamap regional war map from the coordinates
       // instead, which sent every event outside the six hardcoded boxes — all
@@ -995,7 +1119,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
         earthquake: ['🌐 EARTHQUAKE',   '#FF9500'],
         wildfire:   ['🔥 WILDFIRE',     '#FF6B1A'],
         flood:      ['🌊 FLOOD',        '#00B0FF'],
-        weather:    ['🌀 TROPICAL CYCLONE', '#22D3EE'],
+        weather:    ['🌀 TROPICAL CYCLONE', '#00E5FF'],
         volcano:    ['🌋 VOLCANO',      '#FF3D3D'],
         drought:    ['☀️ DROUGHT',      '#FFD500'],
       };
@@ -1040,7 +1164,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
         if (!e.features?.length) return;
         const p = e.features[0].properties as any;
         const coords = e.lngLat;
-        const srcUrl = p.url || SDK_SOURCE_URLS[p.source] || 'https://oculix.example';
+        const srcUrl = p.url || SDK_SOURCE_URLS[p.source] || 'https://oculixai.live';
         const domainLabel = p.domain === 'SEA' ? '⚓ MARITIME' : p.domain === 'AIR' ? '✈ AIR CORRIDOR' : '🛡 NAVAL INTEL';
         const domainColor = p.domain === 'SEA' ? '#4FC3F7' : p.domain === 'AIR' ? '#B3E5FC' : '#81D4FA';
         const linkStyle = 'text-decoration:none;padding:3px 8px;border-radius:4px;font-size:9px;font-weight:700;letter-spacing:0.05em;';
@@ -1075,7 +1199,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
         <div style="color:#E8E6E0;font-size:11px;font-weight:bold;margin-bottom:10px;">${htmlEsc(p.malware || 'Unknown Payload')}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:9px;margin-bottom:8px;background:rgba(0,0,0,0.35);padding:8px;border-radius:4px;border:1px solid rgba(255,255,255,0.04);">
           <div><span style="color:#5C5A54;font-size:7px;letter-spacing:0.1em;">SOURCE ORIGIN</span><br/><span style="color:#FF5252;font-family:monospace;">${p.src_lat || '?'}°, ${p.src_lng || '?'}°</span></div>
-          <div><span style="color:#5C5A54;font-size:7px;letter-spacing:0.1em;">TARGET</span><br/><span style="color:#22D3EE;font-family:monospace;">${htmlEsc(p.target_ip || '—')}</span></div>
+          <div><span style="color:#5C5A54;font-size:7px;letter-spacing:0.1em;">TARGET</span><br/><span style="color:#00E5FF;font-family:monospace;">${htmlEsc(p.target_ip || '—')}</span></div>
           <div><span style="color:#5C5A54;font-size:7px;letter-spacing:0.1em;">TARGET COUNTRY</span><br/><span style="color:#E8E6E0;">${htmlEsc(p.target_country || '—')}</span></div>
           <div><span style="color:#5C5A54;font-size:7px;letter-spacing:0.1em;">PORT</span><br/><span style="color:#FFD600;font-family:monospace;">${p.port || '—'}</span></div>
         </div>
@@ -1089,7 +1213,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
     });
 
     // ── Generic hover for clickables ──
-    ['conflict-icons','cctv-dots','eq-circles','sat-dots','fires-heat','gdelt-dots','weather-dots','infra-dots','maritime-dots','choke-dots','news-dots','balloon-dots','rad-dots','ship-dots','sweep-device-dots','scan-targets-dots','sdk-sea','sdk-sea-glow','sdk-sea-atmo','sdk-air','sdk-air-glow','sdk-air-atmo','sdk-intel','sdk-intel-glow','sdk-intel-atmo','malware-dots','cyber-heads','gdelt-events-dots','cf-outage-dots','cf-attack-dots'].forEach(layer => {
+    ['conflict-icons','cctv-dots','eq-circles','fires-heat','gdelt-dots','weather-dots','infra-dots','maritime-dots','choke-dots','news-dots','balloon-dots','rad-dots','ship-dots','sweep-device-dots','scan-targets-dots','sdk-sea','sdk-sea-glow','sdk-sea-atmo','sdk-air','sdk-air-glow','sdk-air-atmo','sdk-intel','sdk-intel-glow','sdk-intel-atmo','malware-dots','cyber-heads','gdelt-events-dots','cf-outage-dots','cf-attack-dots'].forEach(layer => {
       map.on('mouseenter', layer, () => { map.getCanvas().style.cursor = 'pointer'; });
       map.on('mouseleave', layer, () => { map.getCanvas().style.cursor = ''; });
     });
@@ -1103,7 +1227,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
         <div style="color:#FF3D3D;font-size:12px;font-weight:700;margin-bottom:6px;">🎯 TARGET: ${htmlEsc(p.id)}</div>
         <div style="font-size:9px;color:#E8E6E0;margin-bottom:8px;">${htmlEsc(p.city || 'Unknown')}, ${htmlEsc(p.country || 'Unknown')} — ${htmlEsc(p.isp || 'Unknown ISP')}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:9px;">
-          <div><span style="color:#5C5A54;">TYPE</span><br/><span style="color:#22D3EE;">${(p.type || 'UNKNOWN').toUpperCase()}</span></div>
+          <div><span style="color:#5C5A54;">TYPE</span><br/><span style="color:#00E5FF;">${(p.type || 'UNKNOWN').toUpperCase()}</span></div>
           <div><span style="color:#5C5A54;">COORDS</span><br/><span style="color:#E8E6E0;">${coords[1].toFixed(3)}°, ${coords[0].toFixed(3)}°</span></div>
         </div>
       </div>`);
@@ -1116,7 +1240,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
       const coords = (e.features[0].geometry as any).coordinates;
       const color = p.risk_level === 'CRITICAL' ? '#FF1744' : p.risk_level === 'HIGH' ? '#FF9500' : '#00BCD4';
       const activeThreats = p.active_threats ? JSON.parse(p.active_threats) : [];
-
+      
       let threatsHtml = '';
       if (activeThreats.length > 0) {
         threatsHtml = `<div style="margin-top:8px;padding-top:6px;border-top:1px solid ${color}40;color:${color};font-size:9px;font-weight:bold;">
@@ -1195,9 +1319,9 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
       if (!e.features?.length) return;
       const p = e.features[0].properties as any;
       const coords = (e.features[0].geometry as any).coordinates;
-      const color = p.type === 'military' ? '#FF1744' : p.type === 'tanker' ? '#FF9500' : '#22D3EE';
+      const color = p.type === 'military' ? '#FF1744' : p.type === 'tanker' ? '#FF9500' : '#00E5FF';
       const icon = p.type === 'military' ? '⚔️' : p.type === 'tanker' ? '🛢️' : '🚢';
-
+      
       popup(coords, `<div style="${pStyle}border:1px solid ${color}60;box-shadow:inset 0 0 12px ${color}15;">
         <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid ${color}40;padding-bottom:6px;margin-bottom:8px;">
           <div style="color:${color};font-size:12px;font-weight:700;letter-spacing:0.1em;">${icon} [ ${(p.type||'VESSEL').toUpperCase()} ]</div>
@@ -1261,7 +1385,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
       const coords = (e.features![0].geometry as any).coordinates;
       const typeColor = p.type === 'naval' ? '#FF3D3D' : p.type === 'energy' ? '#FF9500' : '#00BCD4';
       const typeLabel = p.type === 'naval' ? 'NAVAL BASE' : p.type === 'energy' ? 'ENERGY PORT' : 'CONTAINER PORT';
-
+      
       const congestionHtml = p.congestion ? `
         <div style="margin-top:8px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.1);">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
@@ -1361,13 +1485,13 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
     useEffect(() => {
       if (!mapReady || !mapRef.current) return;
       const map = mapRef.current;
-
+      
       const isGhost = theme === 'ghost';
       const phantomPurple = '#B388FF';
       const ghostPriv = '#CE93D8';
       const ghostGov = '#D500F9';
 
-      const flightCom = isGhost ? phantomPurple : '#22D3EE';
+      const flightCom = isGhost ? phantomPurple : '#00E5FF';
       const flightPriv = isGhost ? ghostPriv : '#FFD700';
       const flightGov = isGhost ? ghostGov : '#FF9500';
       const flightMil = '#FF0000';
@@ -1409,17 +1533,30 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
     setGeo('earthquakes', activeLayers.earthquakes && data.earthquakes ? data.earthquakes.map((eq: any) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [eq.lng, eq.lat] }, properties: { id: eq.id, magnitude: eq.magnitude, place: eq.place, depth: eq.depth, source: eq.source } })) : []);
   }, [mapReady, data.earthquakes, activeLayers.earthquakes, setGeo]);
 
+  /** Catalogue rows -> the packed form the 3D layer draws. */
+  const toSatPoints = useCallback((rows: SatelliteRow[]): SatPoint[] => rows.map((s) => ({
+    lng: s.lng,
+    lat: s.lat,
+    altKm: s.alt,
+    color: parseColor(s.color),
+    // Stations are the ones an operator is usually looking for, so they get
+    // to be findable in a field of several hundred identical dots.
+    size: s.category === 'science' || /ISS|TIANGONG/i.test(s.name || '') ? 2.2 : 1,
+  })), []);
+
   useEffect(() => {
     if (!mapReady) return;
     const sats = data.satellites || [];
     const al = activeLayers as any;
-
+    
     // If 'All Satellites' is on, show everything
     if (al.satellites) {
       setGeo('satellites', sats.map((s: any) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [s.lng, s.lat] }, properties: { name: s.name, color: s.color, mission: s.mission, alt: s.alt, noradId: s.noradId, category: s.category } })));
+      satRowsRef.current = sats;
+      satLayerRef.current?.setPoints(toSatPoints(sats));
       return;
     }
-
+    
     // Otherwise filter by enabled sub-layers
     const enabledCategories: string[] = [];
     if (al.sat_comms) enabledCategories.push('comms');
@@ -1427,14 +1564,18 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
     if (al.sat_navigation) enabledCategories.push('navigation');
     if (al.sat_earth) enabledCategories.push('earth_obs');
     if (al.sat_science) enabledCategories.push('science');
-
+    
     if (enabledCategories.length === 0) {
       setGeo('satellites', []);
+      satRowsRef.current = [];
+      satLayerRef.current?.setPoints([]);
       return;
     }
-
+    
     const filtered = sats.filter((s: any) => enabledCategories.includes(s.category));
     setGeo('satellites', filtered.map((s: any) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [s.lng, s.lat] }, properties: { name: s.name, color: s.color, mission: s.mission, alt: s.alt, noradId: s.noradId, category: s.category } })));
+    satRowsRef.current = filtered;
+    satLayerRef.current?.setPoints(toSatPoints(filtered));
   }, [mapReady, data.satellites, activeLayers.satellites, (activeLayers as any).sat_comms, (activeLayers as any).sat_military, (activeLayers as any).sat_navigation, (activeLayers as any).sat_earth, (activeLayers as any).sat_science, setGeo]);
 
   useEffect(() => {
@@ -1495,7 +1636,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
   useEffect(() => {
     if (!mapReady) return;
     const meshLinks: any[] = [];
-
+    
     // Generate Malware Botnet Mesh
     if (activeLayers.malware && data.malware_threats && data.malware_threats.length > 1) {
       const nodes = data.malware_threats;
@@ -1655,10 +1796,10 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
       const ignoredColors = new Set(['#9BB5CC', '#A0B8CD', '#8EABC2', '#9bb5cc', '#a0b8cd', '#8eabc2']);
       for (const cable of data.submarine_cables) {
         if (!cable.geometry) continue;
-
+        
         // Remove the light blue background arcs
         if (cable.properties?.color && ignoredColors.has(cable.properties.color)) continue;
-
+        
         links.push({
           type: 'Feature',
           geometry: cable.geometry, // Raw topographic paths exactly from Submarine Map
@@ -1700,9 +1841,9 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
         const zoneFeatures = (conflictData.zones || []).map((z: any) => ({
           type: 'Feature' as const,
           geometry: { type: 'Point' as const, coordinates: [z.lng, z.lat] },
-          properties: {
-            label: z.label,
-            severity: z.severity,
+          properties: { 
+            label: z.label, 
+            severity: z.severity, 
             description: `${z.description}${z.eventCount > 0 ? ` [${z.eventCount} live events detected]` : ''}`,
             sourceUrl: z.sourceUrl,
             eventCount: z.eventCount,
@@ -1715,7 +1856,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
           .map((e: any) => ({
             type: 'Feature' as const,
             geometry: { type: 'Point' as const, coordinates: [e.lng, e.lat] },
-            properties: {
+            properties: { 
               label: (e.title || 'CONFLICT EVENT').substring(0, 60).toUpperCase(),
               severity: 'war',
               description: e.title || 'Live conflict event detected by GDELT.',
@@ -1751,7 +1892,12 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
     if (!mapReady) return;
     setVis(['eq-circles','eq-label'], activeLayers.earthquakes);
     const anySat = activeLayers.satellites || (activeLayers as any).sat_comms || (activeLayers as any).sat_military || (activeLayers as any).sat_navigation || (activeLayers as any).sat_earth || (activeLayers as any).sat_science;
-    setVis(['sat-glow','sat-dots'], anySat);
+    // The circle layers stay hidden whatever the toggles say — the 3D layer
+    // is the single representation, and showing both drew every satellite
+    // twice, once flat on the ground and once at altitude.
+    setVis(['sat-glow','sat-dots'], false);
+    // Clearing the 3D layer is what actually turns satellites off.
+    if (!anySat) { satRowsRef.current = []; satLayerRef.current?.setPoints([]); }
     setVis(['gdelt-dots'], activeLayers.global_incidents);
     setVis(['gdelt-events-dots'], (activeLayers as any).gdelt_events);
     setVis(['cf-outage-halo','cf-outage-dots','cf-outage-label'], (activeLayers as any).cf_outages);
@@ -1859,13 +2005,13 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
   useEffect(() => {
     if (!mapReady || !mapRef.current || !scanTargets) return;
     const map = mapRef.current;
-
+    
     const features = scanTargets.map(t => ({
       type: 'Feature' as const,
       geometry: { type: 'Point' as const, coordinates: [t.lng, t.lat] },
       properties: { ...t }
     }));
-
+    
     const src = map.getSource('scan-targets') as maplibregl.GeoJSONSource;
     if (src) src.setData({ type: 'FeatureCollection', features });
   }, [scanTargets, mapReady]);
@@ -2005,7 +2151,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
     const map = mapRef.current;
     const currentPolygons = drawnPolygons || [];
     const currentIds = currentPolygons.map(p => p.id);
-
+    
     prevDrawnPolygonsRef.current.forEach(id => {
       if (!currentIds.includes(id)) {
         if (map.getLayer(`drawn-polygon-label-${id}`)) map.removeLayer(`drawn-polygon-label-${id}`);
@@ -2120,7 +2266,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
         id: 'directions-line', type: 'line', source: SRC,
         layout: { 'line-cap': 'round', 'line-join': 'round' },
         paint: {
-          'line-color': '#22D3EE',
+          'line-color': '#00E5FF',
           'line-width': ['interpolate', ['linear'], ['zoom'], 5, 2.5, 14, 6],
           'line-opacity': 0.95,
         },
@@ -2131,7 +2277,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
         id: 'directions-active-line', type: 'line', source: SRC_ACTIVE,
         layout: { 'line-cap': 'round', 'line-join': 'round' },
         paint: {
-          'line-color': '#8B5CF6',
+          'line-color': '#D4AF37',
           'line-width': ['interpolate', ['linear'], ['zoom'], 5, 4, 14, 9],
           'line-opacity': 0.95,
         },
@@ -2393,7 +2539,7 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
 
     currentLayers.forEach(layer => {
       const sourceId = `arcgis-${layer.id}`;
-      const c = layer.color || '#8B5CF6';
+      const c = layer.color || '#D4AF37';
       const o = layer.opacity ?? 0.8;
       if (!map.getSource(sourceId)) {
         map.addSource(sourceId, { type: 'geojson', data: layer.geojson });
@@ -2474,17 +2620,17 @@ function OculixMap({ data, activeLayers, onEntityClick, onMouseCoords, onRightCl
       map.addLayer({
         id: 'draw-fill-temp', type: 'fill', source: SRC,
         filter: ['==', ['geometry-type'], 'Polygon'],
-        paint: { 'fill-color': '#22D3EE', 'fill-opacity': 0.12 },
+        paint: { 'fill-color': '#00E5FF', 'fill-opacity': 0.12 },
       });
       map.addLayer({
         id: 'draw-line-temp', type: 'line', source: SRC,
         filter: ['match', ['geometry-type'], ['LineString', 'Polygon'], true, false],
-        paint: { 'line-color': '#22D3EE', 'line-width': 2, 'line-dasharray': [3, 2] },
+        paint: { 'line-color': '#00E5FF', 'line-width': 2, 'line-dasharray': [3, 2] },
       });
       map.addLayer({
         id: 'draw-points-temp', type: 'circle', source: SRC,
         filter: ['==', ['geometry-type'], 'MultiPoint'],
-        paint: { 'circle-color': '#22D3EE', 'circle-radius': 4, 'circle-stroke-width': 1.5, 'circle-stroke-color': '#04040A' },
+        paint: { 'circle-color': '#00E5FF', 'circle-radius': 4, 'circle-stroke-width': 1.5, 'circle-stroke-color': '#04040A' },
       });
     }
 

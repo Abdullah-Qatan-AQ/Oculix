@@ -124,7 +124,7 @@ async function fetchDGTCameras(): Promise<CctvCamera[]> {
     });
     if (!response.ok) return dgtCache?.cameras || [];
     const data = await response.json();
-
+    
     if (!data || !Array.isArray(data.camaras)) {
       return [];
     }
@@ -133,7 +133,7 @@ async function fetchDGTCameras(): Promise<CctvCamera[]> {
     for (const cam of data.camaras) {
       const lat = parseFloat(cam.latitud);
       const lng = parseFloat(cam.longitud);
-
+      
       if (isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) continue;
 
       const direction = cam.sentido !== '-' ? ` (${cam.sentido === '+' ? 'Ascending' : cam.sentido})` : '';
@@ -165,8 +165,8 @@ export async function fetchSpainCameras(): Promise<CctvCamera[]> {
   const merged: CctvCamera[] = [...SPAIN_CAMERAS];
 
   for (const dgtCam of dgtCameras) {
-    const isDuplicate = SPAIN_CAMERAS.some(staticCam =>
-      Math.abs(staticCam.lat - dgtCam.lat) <= 0.001 &&
+    const isDuplicate = SPAIN_CAMERAS.some(staticCam => 
+      Math.abs(staticCam.lat - dgtCam.lat) <= 0.001 && 
       Math.abs(staticCam.lng - dgtCam.lng) <= 0.001
     );
 

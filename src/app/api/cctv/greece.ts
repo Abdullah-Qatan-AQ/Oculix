@@ -10,10 +10,10 @@ export async function fetchGreeceCameras(): Promise<CctvCamera[]> {
   // that were failing for raw HLS/snapshot extraction.
   return ATTiki_ODOS_CAMERAS.map(cam => ({
     id: `gr-aodos-${cam.alias}`,
-    lat: cam.lat,
+    lat: cam.lat, 
     lng: cam.lng,
-    name: cam.name,
-    city: cam.city,
+    name: cam.name, 
+    city: cam.city, 
     country: 'Greece',
     stream_url: `https://ipcamlive.com/player/player.php?alias=${cam.alias}&autoplay=1`,
     stream_type: 'iframe',

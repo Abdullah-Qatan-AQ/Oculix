@@ -136,7 +136,7 @@ export async function GET() {
     total: dynamicFacilities.length,
     timestamp: new Date().toISOString(),
   }, {
-    headers: {
+    headers: { 
       'Cache-Control': 'no-store, no-cache, must-revalidate',
       'Pragma': 'no-cache'
     }

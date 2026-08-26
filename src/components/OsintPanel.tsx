@@ -41,10 +41,10 @@ interface ToolDef {
 }
 
 const TABS: ToolDef[] = [
-  { id: 'scanner', label: 'PORT SCAN', icon: Radar, placeholder: 'IP or hostname', color: '#22D3EE', group: 'network', blurb: 'Open ports and running services' },
+  { id: 'scanner', label: 'PORT SCAN', icon: Radar, placeholder: 'IP or hostname', color: '#00E5FF', group: 'network', blurb: 'Open ports and running services' },
   { id: 'vuln', label: 'VULN SWEEP', icon: Bug, placeholder: 'IP or hostname', color: '#FF3D3D', group: 'network', blurb: 'Known CVEs affecting the host' },
   { id: 'shodan', label: 'SHODAN IOT', icon: Network, placeholder: 'IP address', color: '#FF3D3D', group: 'network', blurb: 'Internet-exposed device record' },
-  { id: 'bgp', label: 'BGP ROUTE', icon: Globe, placeholder: 'IP or ASN', color: '#22D3EE', group: 'network', blurb: 'Autonomous system and prefixes' },
+  { id: 'bgp', label: 'BGP ROUTE', icon: Globe, placeholder: 'IP or ASN', color: '#00E5FF', group: 'network', blurb: 'Autonomous system and prefixes' },
   { id: 'mac', label: 'MAC ADDR', icon: Fingerprint, placeholder: 'MAC address', color: '#FFD700', group: 'network', blurb: 'Hardware vendor lookup' },
   { id: 'sweep', label: 'IP SWEEP', icon: Crosshair, placeholder: 'Enter IP address (e.g. 8.8.8.8)', color: '#FF3D3D', group: 'network', blurb: 'Scan an entire subnet' },
 
@@ -309,7 +309,7 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
 
         setResults(parsedData);
         setHistory(prev => [{ tab: activeTab, query, time: new Date().toLocaleTimeString() }, ...prev.slice(0, 9)]);
-
+        
         // Geolocate the target in the background
         if (activeTab === 'phone') {
           if (data.lat && data.lng && onScanGeolocate) {
@@ -430,8 +430,8 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
       const host = r.host || r.target || query;
       return (
         <div>
-          <SectionHeader title="HOST INFO" icon={Server} color="#22D3EE" />
-          <ResultRow label="Target" value={host} color="#22D3EE" />
+          <SectionHeader title="HOST INFO" icon={Server} color="#00E5FF" />
+          <ResultRow label="Target" value={host} color="#00E5FF" />
           <ResultRow label="Scan Type" value={r.scan_type || scanType} />
           <ResultRow label="Duration" value={r.duration || r.scan_time} />
           {Array.isArray(ports) && ports.length > 0 && (
@@ -454,7 +454,7 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
       const vulns = r.vulnerabilities || r.vulns || r.cves || [];
       const exploits = vulns.filter((v: any) => v.is_exploit);
       const regularVulns = vulns.filter((v: any) => !v.is_exploit);
-
+      
       return (
         <div>
           <SectionHeader title="VULNERABILITY ASSESSMENT" icon={Bug} color="#FF3D3D" />
@@ -475,7 +475,7 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
               ))}
             </div>
           )}
-
+          
           {exploits.length > 0 && (
             <div className="mt-4">
               <SectionHeader title={`POSSIBLE EXPLOITS (${exploits.length})`} icon={AlertTriangle} color="#FF9500" />
@@ -495,7 +495,7 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
               </div>
             </div>
           )}
-
+          
           {(!Array.isArray(vulns) || vulns.length === 0) && renderFallback()}
         </div>
       );
@@ -546,7 +546,7 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
           <SectionHeader title="SHODAN IOT INTELLIGENCE" icon={Network} color="#FF3D3D" />
           <ResultRow label="Target IP" value={r.ip || query} color="#FF3D3D" />
           {r.hostnames?.length > 0 && <ResultRow label="Hostnames" value={r.hostnames.join(', ')} />}
-          {r.ports?.length > 0 && <ResultRow label="Open Ports" value={r.ports.join(', ')} color="#22D3EE" />}
+          {r.ports?.length > 0 && <ResultRow label="Open Ports" value={r.ports.join(', ')} color="#00E5FF" />}
           {r.tags?.length > 0 && <ResultRow label="Tags" value={r.tags.join(', ')} color="#FF9500" />}
           {r.vulns?.length > 0 && (
             <div className="mt-2 p-2 border border-red-500/30 bg-red-500/10 rounded">
@@ -568,13 +568,13 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
     if (activeTab === 'bgp') {
       return (
         <div>
-          <SectionHeader title="BGP ROUTING INTELLIGENCE" icon={Globe} color="#22D3EE" />
-          <ResultRow label="Query" value={r.query} color="#22D3EE" />
+          <SectionHeader title="BGP ROUTING INTELLIGENCE" icon={Globe} color="#00E5FF" />
+          <ResultRow label="Query" value={r.query} color="#00E5FF" />
           {r.type === 'ip' && r.ip && (
             <>
               {r.ip.prefixes?.map((p: any, i: number) => (
-                <div key={i} className="mt-2 p-2 border border-[#22D3EE]/20 bg-[#22D3EE]/5 rounded">
-                  <ResultRow label="ASN" value={`AS${p.asn.asn} - ${p.asn.name}`} color="#22D3EE" />
+                <div key={i} className="mt-2 p-2 border border-[#00E5FF]/20 bg-[#00E5FF]/5 rounded">
+                  <ResultRow label="ASN" value={`AS${p.asn.asn} - ${p.asn.name}`} color="#00E5FF" />
                   <ResultRow label="Prefix" value={p.prefix} />
                   <ResultRow label="Country" value={p.asn.country_code} />
                   <ResultRow label="Description" value={p.asn.description} />
@@ -583,8 +583,8 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
             </>
           )}
           {r.type === 'asn' && r.asn && (
-            <div className="mt-2 p-2 border border-[#22D3EE]/20 bg-[#22D3EE]/5 rounded">
-              <ResultRow label="ASN" value={`AS${r.asn.asn}`} color="#22D3EE" />
+            <div className="mt-2 p-2 border border-[#00E5FF]/20 bg-[#00E5FF]/5 rounded">
+              <ResultRow label="ASN" value={`AS${r.asn.asn}`} color="#00E5FF" />
               <ResultRow label="Name" value={r.asn.name} />
               <ResultRow label="Description" value={r.asn.description} />
               <ResultRow label="Country" value={r.asn.country_code} />
@@ -621,7 +621,7 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
               <ResultRow label="Intl Format" value={r.international} />
               <ResultRow label="Nat Format" value={r.national} />
               <ResultRow label="Country" value={`${r.region} (${r.country_code})`} />
-              <ResultRow label="Line Type" value={r.line_type} color={r.line_type === 'MOBILE' ? '#22D3EE' : r.line_type === 'VOIP' ? '#FF9500' : undefined} />
+              <ResultRow label="Line Type" value={r.line_type} color={r.line_type === 'MOBILE' ? '#00E5FF' : r.line_type === 'VOIP' ? '#FF9500' : undefined} />
             </>
           )}
         </div>
@@ -955,7 +955,7 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
           <SectionHeader title="DATA LEAK SWEEP" icon={ShieldAlert} color="#E040FB" />
           <ResultRow label="Email Target" value={r.email} color="#E040FB" />
           <ResultRow label="Status" value={r.breached ? 'COMPROMISED' : 'SECURE'} color={r.breached ? '#FF1744' : '#00E676'} />
-
+          
           {r.breached && r.data_exposed?.length > 0 && (
             <div className="mt-2 p-2 border border-[#E040FB]/30 bg-[#E040FB]/10 rounded">
               <span className="text-[11px] font-mono text-[#E040FB] font-bold mb-1 block">EXPOSED DATA POINTS</span>
@@ -1321,8 +1321,8 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
         {/* Sweep & Self Track Actions */}
         <div className="grid grid-cols-2 gap-2">
           {TABS.filter(t => t.id === 'sweep').map(tab => (
-            <button key={tab.id} onClick={() => {
-                  setActiveTab(tab.id); setQuery(''); setResults(null); setError(''); setSweepResult(null);
+            <button key={tab.id} onClick={() => { 
+                  setActiveTab(tab.id); setQuery(''); setResults(null); setError(''); setSweepResult(null); 
                 }}
                 className={`w-full py-4 rounded-lg border flex flex-col items-center justify-center gap-2 transition-all ${
                   activeTab === tab.id ? 'bg-[var(--bg-tertiary)] border-opacity-50' : 'bg-[#0D0D0C] hover:bg-[var(--hover-accent)] border-transparent'

@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Layers, BarChart3, Newspaper, Search, X, Globe, MapPinned, Route, Radar, Satellite, Moon, ExternalLink, AlertTriangle, Activity, Database, Wifi, Play, Network, Crosshair, Bluetooth, Pentagon, Radio , PenLine, Settings2 } from 'lucide-react';
+import { Layers, BarChart3, Newspaper, Search, X, Globe, MapPinned, Route, Radar, Satellite, Moon, ExternalLink, AlertTriangle, Activity, Database, Wifi, Play, Network, Crosshair, Bluetooth, Pentagon, Radio , PenLine } from 'lucide-react';
 import IntelFeed from '@/components/IntelFeed';
 import MarketsPanel from '@/components/MarketsPanel';
 import ScmPanel from '@/components/ScmPanel';
@@ -21,12 +21,7 @@ import GlobalStatusBar from '@/components/GlobalStatusBar';
 import LiveAlerts from '@/components/LiveAlerts';
 import WorldRemote from '@/components/WorldRemote';
 import ArcGISPanel from '@/components/ArcGISPanel';
-import SettingsPanel, { type OculixLanguage, type OculixUiTheme } from '@/components/SettingsPanel';
-import NexusShell from '@/components/NexusShell';
-import NexusSplash from '@/components/NexusSplash';
-import LocaleSurface from '@/components/LocaleSurface';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
-import MapModeDock from '@/components/MapModeDock';
 const OculixMap = dynamic(() => import('@/components/OculixMap'), { ssr: false });
 const LayerPanel = dynamic(() => import('@/components/LayerPanel'));
 const SpaceCam = dynamic(() => import('@/components/SpaceCam'), { ssr: false });
@@ -118,17 +113,9 @@ export default function Dashboard() {
   const [regionDossier, setRegionDossier] = useState<any>(null);
   const [dossierLoading, setDossierLoading] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
-  const [activeView, setActiveView] = useState<'home' | 'map'>('home');
-  const [showSettings, setShowSettings] = useState(false);
-  const [language, setLanguage] = useState<OculixLanguage>('ar');
-  const [uiTheme, setUiTheme] = useState<OculixUiTheme>('zenith');
-  const [showAdvancedTools, setShowAdvancedTools] = useState(false);
-  const [showTicker, setShowTicker] = useState(false);
-  const [showGrid, setShowGrid] = useState(true);
-  const [reducedMotion, setReducedMotion] = useState(false);
   const [activeCamera, setActiveCamera] = useState<any>(null);
   const [spaceWeather, setSpaceWeather] = useState<any>(null);
-  const [showLayers, setShowLayers] = useState(false);
+  const [showLayers, setShowLayers] = useState(true);
   const [showMarkets, setShowMarkets] = useState(false);
   const [showAlerts, setShowAlerts] = useState(false);
   const [showSpaceCam, setShowSpaceCam] = useState(false);
@@ -164,27 +151,6 @@ export default function Dashboard() {
   const [navProgress, setNavProgress] = useState<NavProgress | null>(null);
   const [watchedFlights, setWatchedFlights] = useState<WatchedFlight[]>([]);
   const [aircraftAirports, setAircraftAirports] = useState<Record<string, Airport[]>>({});
-
-  const openMapView = useCallback(() => {
-    setActiveView('map');
-    setFlyToLocation({ lat: 20, lng: 0, zoom: 2.5, ts: Date.now() });
-  }, []);
-
-  const openHomeView = useCallback(() => {
-    setActiveView('home');
-    setShowLayers(false);
-    setShowAdvancedTools(false);
-    setShowIntel(false);
-    setShowMarkets(false);
-    setShowAlerts(false);
-    setShowSpaceCam(false);
-    setShowDrawing(false);
-    setShowDirections(false);
-    setShowDesktopSearch(false);
-    setActiveCamera(null);
-    setActiveRoute(null);
-    setNavSession(null);
-  }, []);
 
   // The popup lives in raw map HTML, so it hands aircraft over through a global.
   useEffect(() => {
@@ -266,34 +232,8 @@ export default function Dashboard() {
   const [oculixTheme, setOculixTheme] = useState<'core'|'ghost'>('core');
 
   useEffect(() => {
-    document.documentElement.lang = language;
-    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
-    document.body.classList.toggle('ui-theme-aurora', uiTheme === 'aurora');
-    document.body.classList.toggle('ui-theme-ember', uiTheme === 'ember');
-    document.body.classList.toggle('ui-theme-paper', uiTheme === 'paper');
-    document.body.classList.toggle('reduce-motion', reducedMotion);
-    document.body.classList.toggle('hide-field-grid', !showGrid);
-    try {
-      localStorage.setItem('oculix.preferences', JSON.stringify({ language, uiTheme, showAdvancedTools, showTicker, showGrid, reducedMotion, showLayers }));
-    } catch { /* storage can be unavailable in private browsing */ }
-  }, [language, uiTheme, showAdvancedTools, showTicker, showGrid, reducedMotion, showLayers]);
-
-  useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('view') === 'map') setActiveView('map');
-  }, []);
-
-  useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem('oculix.preferences') || '{}');
-      if (saved.language === 'ar' || saved.language === 'en') setLanguage(saved.language);
-      if (['zenith', 'aurora', 'ember', 'paper'].includes(saved.uiTheme)) setUiTheme(saved.uiTheme);
-      if (typeof saved.showAdvancedTools === 'boolean') setShowAdvancedTools(saved.showAdvancedTools);
-      if (typeof saved.showTicker === 'boolean') setShowTicker(saved.showTicker);
-      if (typeof saved.showGrid === 'boolean') setShowGrid(saved.showGrid);
-      if (typeof saved.reducedMotion === 'boolean') setReducedMotion(saved.reducedMotion);
-      if (typeof saved.showLayers === 'boolean') setShowLayers(saved.showLayers);
-    } catch { /* use the calm defaults */ }
-  }, []);
+    document.body.className = oculixTheme === 'core' ? '' : `theme-${oculixTheme}`;
+  }, [oculixTheme]);
 
   const isMobile = useIsMobile();
   const startTime = useRef(Date.now());
@@ -857,13 +797,8 @@ export default function Dashboard() {
 
   return (
     <main className="fixed inset-0 w-full h-full bg-[var(--bg-void)] overflow-hidden">
+      <PWAInstallPrompt language="ar" />
 
-      <NexusSplash language={language} visible={showSplash} />
-      <LocaleSurface language={language} />
-      <PWAInstallPrompt language={language} />
-
-      {/* Legacy splash retained in source only for backwards compatibility; hidden from the new experience. */}
-      <div className="legacy-splash">
       {/* ── SPLASH ── */}
       <AnimatePresence>
         {showSplash && (
@@ -876,34 +811,35 @@ export default function Dashboard() {
           >
             {/* ── Scanline CRT overlay ── */}
             <div className="absolute inset-0 pointer-events-none z-[1]" style={{
-              backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139,92,246,0.015) 2px, rgba(139,92,246,0.015) 4px)',
+              backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(212,175,55,0.015) 2px, rgba(212,175,55,0.015) 4px)',
               animation: 'splashScanDrift 8s linear infinite',
             }} />
 
-            {/* ── V5.0 badge — top-left ── */}
+            {/* ── V4.2 badge — top-left ── */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.6 }}
               transition={{ delay: 0.8, duration: 0.5 }}
               className="absolute top-6 left-6 z-[2] font-mono text-[11px] tracking-[0.3em] text-[var(--gold-primary)]"
             >
-              V5.0
+              V4.2
             </motion.div>
 
 
 
             {/* ── Geometric tactical logo ── */}
             <div className="relative w-40 h-40 mb-8 flex items-center justify-center z-[2]">
+              <img className="oculix-splash-mark" src="/oculix-icon.svg" alt="OX" />
               {/* Outer ring — slow clockwise */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.6, rotate: 0 }}
                 animate={{ opacity: 1, scale: 1, rotate: 360 }}
                 transition={{ opacity: { duration: 0.6 }, scale: { duration: 0.8, ease: 'easeOut' }, rotate: { duration: 20, repeat: Infinity, ease: 'linear' } }}
                 className="absolute inset-0 rounded-full"
-                style={{ border: '1px solid rgba(139,92,246,0.2)' }}
+                style={{ border: '1px solid rgba(212,175,55,0.2)' }}
               >
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full" style={{ background: 'var(--gold-primary)', boxShadow: '0 0 12px var(--gold-primary), 0 0 24px rgba(139,92,246,0.3)' }} />
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-1 h-1 rounded-full" style={{ background: 'rgba(139,92,246,0.5)', boxShadow: '0 0 6px rgba(139,92,246,0.3)' }} />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full" style={{ background: 'var(--gold-primary)', boxShadow: '0 0 12px var(--gold-primary), 0 0 24px rgba(212,175,55,0.3)' }} />
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-1 h-1 rounded-full" style={{ background: 'rgba(212,175,55,0.5)', boxShadow: '0 0 6px rgba(212,175,55,0.3)' }} />
               </motion.div>
 
               {/* Middle ring — faster counter-clockwise */}
@@ -912,10 +848,10 @@ export default function Dashboard() {
                 animate={{ opacity: 1, scale: 1, rotate: -360 }}
                 transition={{ opacity: { duration: 0.6, delay: 0.15 }, scale: { duration: 0.8, delay: 0.15, ease: 'easeOut' }, rotate: { duration: 12, repeat: Infinity, ease: 'linear' } }}
                 className="absolute rounded-full"
-                style={{ inset: '18px', border: '1px solid rgba(34,211,238,0.15)' }}
+                style={{ inset: '18px', border: '1px solid rgba(0,229,255,0.15)' }}
               >
-                <div className="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full" style={{ background: 'var(--cyan-primary)', boxShadow: '0 0 10px var(--cyan-primary), 0 0 20px rgba(34,211,238,0.2)' }} />
-                <div className="absolute bottom-0 left-1/4 translate-y-1/2 w-1 h-1 rounded-full" style={{ background: 'rgba(34,211,238,0.4)' }} />
+                <div className="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full" style={{ background: 'var(--cyan-primary)', boxShadow: '0 0 10px var(--cyan-primary), 0 0 20px rgba(0,229,255,0.2)' }} />
+                <div className="absolute bottom-0 left-1/4 translate-y-1/2 w-1 h-1 rounded-full" style={{ background: 'rgba(0,229,255,0.4)' }} />
               </motion.div>
 
               {/* Inner ring — fastest clockwise */}
@@ -924,7 +860,7 @@ export default function Dashboard() {
                 animate={{ opacity: 1, scale: 1, rotate: 360 }}
                 transition={{ opacity: { duration: 0.6, delay: 0.3 }, scale: { duration: 0.8, delay: 0.3, ease: 'easeOut' }, rotate: { duration: 7, repeat: Infinity, ease: 'linear' } }}
                 className="absolute rounded-full"
-                style={{ inset: '40px', border: '1px solid rgba(139,92,246,0.25)' }}
+                style={{ inset: '40px', border: '1px solid rgba(212,175,55,0.25)' }}
               >
                 <div className="absolute top-0 left-1/4 -translate-y-1/2 w-1.5 h-1.5 rounded-full" style={{ background: 'var(--gold-primary)', boxShadow: '0 0 8px var(--gold-primary)' }} />
               </motion.div>
@@ -935,18 +871,17 @@ export default function Dashboard() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.4, duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
                 className="relative w-12 h-12 rounded-full flex items-center justify-center"
-                style={{ border: '2px solid var(--gold-primary)', boxShadow: '0 0 20px rgba(139,92,246,0.15), inset 0 0 20px rgba(139,92,246,0.05)' }}
+                style={{ border: '2px solid var(--gold-primary)', boxShadow: '0 0 20px rgba(212,175,55,0.15), inset 0 0 20px rgba(212,175,55,0.05)' }}
               >
                 <motion.div
                   animate={{ opacity: [0.3, 0.8, 0.3] }}
                   transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                   className="w-5 h-5 rounded-full"
-                  style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.4) 0%, rgba(139,92,246,0.05) 70%)' }}
+                  style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.4) 0%, rgba(212,175,55,0.05) 70%)' }}
                 />
-                <span className="absolute z-[2] text-[11px] font-black tracking-[-0.08em] text-white/90">OX</span>
                 {/* Crosshair lines */}
-                <div className="absolute w-[1px] h-full" style={{ background: 'linear-gradient(to bottom, transparent, rgba(139,92,246,0.3), transparent)' }} />
-                <div className="absolute w-full h-[1px]" style={{ background: 'linear-gradient(to right, transparent, rgba(139,92,246,0.3), transparent)' }} />
+                <div className="absolute w-[1px] h-full" style={{ background: 'linear-gradient(to bottom, transparent, rgba(212,175,55,0.3), transparent)' }} />
+                <div className="absolute w-full h-[1px]" style={{ background: 'linear-gradient(to right, transparent, rgba(212,175,55,0.3), transparent)' }} />
               </motion.div>
 
               {/* Faint pulsing radar sweep */}
@@ -955,20 +890,20 @@ export default function Dashboard() {
                 animate={{ opacity: [0, 0.15, 0], rotate: [0, 360] }}
                 transition={{ opacity: { duration: 3, repeat: Infinity }, rotate: { duration: 3, repeat: Infinity, ease: 'linear' }, delay: 0.6 }}
                 className="absolute inset-[10px] rounded-full"
-                style={{ background: 'conic-gradient(from 0deg, transparent 0deg, rgba(139,92,246,0.15) 40deg, transparent 80deg)' }}
+                style={{ background: 'conic-gradient(from 0deg, transparent 0deg, rgba(212,175,55,0.15) 40deg, transparent 80deg)' }}
               />
             </div>
 
             {/* ── OCULIX title — letter-by-letter stagger ── */}
-            <div dir="ltr" className="flex items-center gap-[2px] mb-3 z-[2]">
-              {'Oculix'.split('').map((letter, i) => (
+            <div className="flex items-center gap-[2px] mb-3 z-[2]">
+              {'OCULIX'.split('').map((letter, i) => (
                 <motion.span
                   key={i}
                   initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
                   animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                   transition={{ delay: 0.5 + i * 0.08, duration: 0.5, ease: 'easeOut' }}
                   className="text-4xl md:text-5xl font-bold tracking-[0.5em] font-mono"
-                  style={{ color: 'var(--text-heading)', textShadow: '0 0 30px rgba(139,92,246,0.2)' }}
+                  style={{ color: 'var(--text-heading)', textShadow: '0 0 30px rgba(212,175,55,0.2)' }}
                 >
                   {letter}
                 </motion.span>
@@ -984,7 +919,7 @@ export default function Dashboard() {
                 className="overflow-hidden whitespace-nowrap"
               >
                 <p className="text-[11px] md:text-[10px] font-mono tracking-[0.5em] text-[var(--gold-primary)]" style={{ opacity: 0.8 }}>
-                  {language === 'ar' ? 'ذكاء الإشارات الحية' : 'LIVE SIGNAL INTELLIGENCE'}
+                  GLOBAL INTELLIGENCE PLATFORM
                 </p>
               </motion.div>
             </div>
@@ -992,13 +927,13 @@ export default function Dashboard() {
             {/* ── Multi-stage progress bar ── */}
             <div className="w-64 md:w-80 z-[2]">
               {/* Thin progress track */}
-              <div className="relative w-full h-[2px] rounded-full overflow-hidden" style={{ background: 'rgba(139,92,246,0.1)' }}>
+              <div className="relative w-full h-[2px] rounded-full overflow-hidden" style={{ background: 'rgba(212,175,55,0.1)' }}>
                 <motion.div
                   initial={{ width: '0%' }}
                   animate={{ width: ['0%', '25%', '50%', '78%', '100%'] }}
                   transition={{ duration: 2.2, delay: 0.5, times: [0, 0.25, 0.5, 0.75, 1], ease: 'easeInOut' }}
                   className="absolute inset-y-0 left-0 rounded-full"
-                  style={{ background: 'linear-gradient(90deg, var(--gold-primary), var(--cyan-primary), var(--gold-primary))', boxShadow: '0 0 12px rgba(139,92,246,0.4)' }}
+                  style={{ background: 'linear-gradient(90deg, var(--gold-primary), var(--cyan-primary), var(--gold-primary))', boxShadow: '0 0 12px rgba(212,175,55,0.4)' }}
                 />
               </div>
 
@@ -1027,7 +962,7 @@ export default function Dashboard() {
             {/* ── Decorative grid lines ── */}
             <div className="absolute inset-0 pointer-events-none z-[0]" style={{ opacity: 0.03 }}>
               <div className="absolute inset-0" style={{
-                backgroundImage: 'linear-gradient(rgba(139,92,246,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.5) 1px, transparent 1px)',
+                backgroundImage: 'linear-gradient(rgba(212,175,55,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,55,0.5) 1px, transparent 1px)',
                 backgroundSize: '60px 60px',
               }} />
             </div>
@@ -1056,20 +991,21 @@ export default function Dashboard() {
           </motion.div>
         )}
       </AnimatePresence>
-      </div>
+
+
 
       {/* ── MAP ── */}
-      {activeView === 'map' && <ErrorBoundary name="Map">
-        <OculixMap
+      <ErrorBoundary name="Map">
+        <OculixMap 
           key={oculixTheme}
-          data={data}
-          activeLayers={activeLayers}
-          projection={mapProjection}
-          mapStyle={mapStyle === 'satellite' ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' : 'dark'}
-          onEntityClick={handleEntityClick}
-          onMouseCoords={handleMouseCoords}
-          onRightClick={handleRightClick}
-          onViewStateChange={setMapView}
+          data={data} 
+          activeLayers={activeLayers} 
+          projection={mapProjection} 
+          mapStyle={mapStyle === 'satellite' ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' : 'dark'} 
+          onEntityClick={handleEntityClick} 
+          onMouseCoords={handleMouseCoords} 
+          onRightClick={handleRightClick} 
+          onViewStateChange={setMapView} 
           flyToLocation={flyToLocation}
           sweepData={sweepData}
           scanTargets={scanTargets}
@@ -1094,26 +1030,7 @@ export default function Dashboard() {
           drawnPolygons={drawnPolygons}
           aircraftAirports={aircraftAirports}
         />
-      </ErrorBoundary>}
-
-      {!showSplash && activeView === 'home' && (
-        <NexusShell
-          language={language}
-          entityCount={Object.values(data).reduce<number>((total, value) => total + (Array.isArray(value) ? value.length : 0), 0)}
-          layerCount={Object.values(activeLayers).filter(Boolean).length}
-          backendStatus={backendStatus}
-          onSettings={() => setShowSettings(true)}
-          onHome={openHomeView}
-          onMonitor={() => { openMapView(); setShowAdvancedTools(true); setShowIntel(false); setShowMarkets(false); setShowAlerts(false); setShowSpaceCam(false); }}
-          onExplore={() => { openMapView(); setShowAdvancedTools(true); setShowIntel(true); setShowMarkets(false); setShowAlerts(false); setShowSpaceCam(false); }}
-          onLayers={() => { openMapView(); setShowLayers(true); setShowSettings(false); }}
-          onAdvanced={() => { openMapView(); setShowAdvancedTools(true); setShowSettings(false); }}
-          onReset={() => { openMapView(); setMapProjection('globe'); setMapStyle('dark'); }}
-        />
-      )}
-      {!showSplash && activeView === 'map' && (
-        <MapModeDock language={language} onHome={openHomeView} onLayers={() => setShowLayers(true)} onSettings={() => setShowSettings(true)} />
-      )}
+      </ErrorBoundary>
 
       {/* ── DIRECTIONS — opens beside the right-hand tool rail ── */}
       <div
@@ -1198,7 +1115,7 @@ export default function Dashboard() {
       {/* ── MAP VIEW CONTROLS ── */}
       <motion.div
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 3.5 }}
-        className="legacy-map-controls absolute bottom-[75px] md:bottom-[100px] z-[200] flex flex-col gap-1.5 pointer-events-none"
+        className="absolute bottom-[75px] md:bottom-[100px] z-[200] flex flex-col gap-1.5 pointer-events-none"
         style={{ left: isMobile ? '12px' : '120px' }}
       >
         {/* Unified Control Strip */}
@@ -1271,27 +1188,29 @@ export default function Dashboard() {
       </motion.div>
 
       {/* ── HEADER ── */}
-      <motion.div dir="ltr" initial={{ opacity: 1, y: 0 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 2.5 }} className={`legacy-header absolute top-4 z-[200] pointer-events-none flex flex-col`} style={{ left: isMobile ? '24px' : '64px', right: '24px' }}>
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 2.5 }} className={`oculix-original-header absolute top-4 z-[200] pointer-events-none flex flex-col`} style={{ left: isMobile ? '24px' : '64px', right: '24px' }}>
         <div className="flex items-center gap-3 w-fit">
-          <div className="brand-mark" aria-label="OX logo">OX</div>
+          <img className="oculix-header-mark" src="/oculix-icon.svg" alt="OX" />
+          <svg viewBox="0 0 650 500" className="oculix-header-legacy w-8 h-8 md:w-10 md:h-10 shrink-0 transition-colors duration-500 text-[#D4AF37] drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]" fill="currentColor">
+            <path d="m620.39,364.82c-0.53628-7.2677-1.7767-14.482-5.0286-21.276-9.4786-19.803-33.963-29.34-53.026-19.284-15.333,8.0885-22.563,29.331-13.578,45.149,6.873,12.099,23.072,18.235,35.622,10.228,4.4328-2.828,7.6343-7.2793,8.9938-12.286,1.3595-5.0063,0.68452-10.798-2.9392-15.401-2.2364-2.8407-5.4473-4.7654-9.1114-5.408-3.664-0.64263-8.1708,0.40388-10.875,3.9972-1.7829,2.3692-1.91,4.5449-1.4108,7.1127,0.24961,1.2839,0.78116,2.8399,2.3513,3.9972,1.5702,1.1573,4.2926,1.9424,5.5844,0.58783,1.1069-1.1607-0.67477-3.153-0.73029-4.7559-0.0388-0.83158-0.0772-1.7317,0.26004-2.4745,0.89679-1.1463,1.8493-1.342,3.4682-1.0581,1.6548,0.29023,3.6474,1.4542,4.5851,2.6452v0.0588c2.0224,2.5986,2.3717,5.5943,1.5284,8.6999-0.81645,3.0066-2.8568,5.919-5.4668,7.7006l-0.29391,0.23513c-8.5452,5.4516-18.484,0.70317-23.392-7.9366-6.7162-11.823-1.5113-26.282,10.285-32.505,15.078-7.9537,35.744,1.451,40.36,17.085,4.566,15.464,2.8715,30.938,0.27385,37.511l10.609,0.073c2.5579-12.089,1.9287-15.035,1.9287-22.696z" />
+            <path d="m158.66,157a70.231,70.231,0,0,0,-14.44,42.81,70.235,70.235,0,1,0,140.47,0,70.231,70.231,0,0,0,-14.28,-42.81h-111.75z" />
+            <path d="m140.86,465.53c-6.7333,0-8.7137-5.4462-12.181-25.899-2.4479-14.774-7.1068-28.463-10.502-43.043-3.0219-13.117-5.6425-20.332-9.6694-26.618-6.5526-10.229-6.3011-20.921,0.71691-30.481,6.33-8.6232,6.827-11.121,6.5471-32.901-0.13783-10.725-0.56403-21.286-0.94711-23.468-0.88077-5.0179-4.6148-7.6923-13.904-9.9586-8.4827-2.0695-16.525-2.2933-41.967-1.1681-18.144,0.80245-20.457,0.72323-22.75-0.77901-5.627-3.687-2.9527-8.8405,12.261-23.626,15.69-15.249,23.876-24.688,38.811-44.75,26.839-36.053,30.927-40.83,57.501-49.189,19.575-6.1582,26.691-9.0119,62.031-10.06,24.654-0.7309,38.767,2.5963,45.357,3.3466,25.219,2.8716,66.247,14.877,91.933,26.083,13.581,5.9249,14.042,6.1723,30.115,16.152,11.981,7.4391,18.733,10.459,35.44,15.034,34.886,9.553,56.753,7.7583,92,10.378,9.2579,0.68808,49.298,3.5149,74.5,4.4784,30.689,1.1732,35.835-2.0376,38.423,0.54994,2.0315,2.0315,0.5636,8.1815,0.6024,14.306,0.0237,3.7378-0.18399,7.6642-0.48569,11.602-8.1923-1.424-8.0353-1.3676-26.54-2.9165-1.6808-0.14069-16.718-1.6695-44.5-4.1726-11.867-1.0692-70.326-2.8448-105.5-3.9248-16.997-0.52189-34.357-4.7228-51-1.2347-5.7624,1.2076,2.387-1.1161-16,7.4812-36.313,14.051-55.853,23.79-104.5,32.83-30.774,4.5201-33.208,4.9745-36.376,7.2909-1.7456,1.2764-1.662,1.6171,1.6767,6.8363,3.5642,5.5717,14.275,15.81,29.699,28.389,51.619,43.564,115.05,77.431,162.89,98.598,22.221,9.5122,37.55,14.655,50.108,16.811,61.892,13.654,134.26-9.4938,136.11-56.959,0.0489-1.256,0.49928-6.001-0.1398-12.079-0.44539-4.2357-0.89625-7.3216-2.2932-11.095-3.9795-10.75-12.413-20.407-28.672-21.755-11.746,0.022-20.375,6.1561-23.95,16.17-4.5622,12.78,1.3185,27.071,14.023,29.565,6.6403,1.3038,11.222-0.5256,14.271-4.4679,3.3424-4.3221,3.72-12.026,1.3559-15.634-2.2757-3.4732-7.2459-5.2754-10.824-3.9248-3.6125,1.3636-4.9933,0.36555-0.6538-3.1839,0.38036-0.24867,0.77844-0.4586,1.191-0.63136,6.6675-2.7918,17.127,4.1226,17.913,14.135,0.7119,11.495-7.7045,20.279-19.249,20.94-6.5659,0.37574-14.594-1.9665-20.026-7.8035-13.425-14.428-9.1712-34.885,2.9586-45.762,4.6131-4.1366,7.7535-6.0583,14.065-7.4773,19.37-4.3554,37.69,4.5134,45.528,24.301,3.5645,8.9992,3.7675,16.201,3.8515,23.221,0.70438,58.895-65.742,87.202-131.95,82.517-28.009-2.4123-46.229-6.8095-80.495-20.915-36.58-12.09-143.44-68.32-207.96-120.33-18.846-15.317-30.511-22.813-33.055-21.24-0.61585,0.38062-0.98989,11.992-0.99221,30.802-0.004,28.758-0.1019,30.352-2.0717,33.583-3.2793,5.3791-4.935,17.725-5.9822,44.608-1.6327,41.914-2.675,60.915-3.4439,62.778-1.3963,3.383-7.0306,4.6642-13.289,4.6642zm221.62-252.27c0.41803-2.1707-4.6044-8.6243-11.231-13.08-10.396-6.9893-22.385-11.512-34.092-15.96-71.934-23.518-145.08-20.065-174.03-4.962-10.593,5.1512-14.126,7.777-22.813,15.582-4.1291,3.7102-9.5939,9.7305-12.144,13.379-5.133,7.3428-10.014,13.339-19.014,23.362-9.3026,10.359-14.5,16.774-14.5,17.897,0,1.5721,7.8962,3.1488,17.5,3.5809,81.15,10.292,230.44,14.198,270.32-39.799zm224.18-69.351c-16.558-0.50003-42.467-2.0158-63.5-4.8954-19.525-2.6732-39.047-6.067-58-11.467-17.982-5.123-35.124-12.85-52.5-19.754-7.7243-3.0694-15.32-6.4533-23-9.6318-8.319-3.4429-16.53-7.1723-25-10.224-15.523-5.5928-30.986-11.946-47.239-14.789-41.988-7.3464-85.261-8.7793-127.76-5.4986-23.554,1.8182-46.695,7.7124-69.5,13.878-17.863,4.8293-35.019,11.972-52.5,18.041-5.069,1.761-10.039,6.841-15.177,5.321-5.396-1.6-10.73-7.749-10.317-13.361,0.434-5.884,7.835-9.014,12.753-12.272,16.823-11.146,36.498-17.485,55.661-23.803,19.219-6.3349,38.923-12.127,59.072-14.001,54.326-5.0532,110.09-3.4301,163.5,7.7269,28.29,5.9098,53.945,20.759,81,30.92,31.437,11.806,61.76,27.444,94.5,34.909,33.045,7.534,83.745,9.6292,101.22,9.5911,6.5425-0.0143,6.7685,0.0708,8.3595,3.1475,1.8515,3.5805,3.1256,14.296,1.7926,15.077-1.3395,0.78418-21.593,1.4453-33.376,1.0894z" />
+          </svg>
           <div className="flex flex-col items-start gap-0.5">
-            <h1 className="text-lg md:text-xl font-bold tracking-[0.4em] text-[#8B5CF6] font-mono">Oculix</h1>
-            <span className="text-[9px] md:text-[10px] font-mono tracking-[0.2em] opacity-80 uppercase text-[#8B5CF6]">{language === 'ar' ? 'ذكاء الإشارات الحية' : 'LIVE SIGNAL INTELLIGENCE'}</span>
+            <h1 className="text-lg md:text-xl font-bold tracking-[0.4em] text-[#D4AF37] font-mono">OCULIX</h1>
+            <span className="text-[9px] md:text-[10px] font-mono tracking-[0.2em] opacity-80 uppercase text-[#D4AF37]">OPEN SOURCE INTELLIGENCE</span>
           </div>
-          <button type="button" onClick={() => setShowSettings(true)} className="settings-launcher pointer-events-auto" aria-label="Open Oculix settings" title="Settings">
-            <Settings2 size={16} />
-          </button>
         </div>
         <div className="flex items-center gap-3 mt-1.5 pl-[44px] min-w-0 pr-4">
           <span className="text-[9px] md:text-[9px] text-[var(--text-muted)] font-mono tracking-[0.2em] md:tracking-[0.3em] uppercase opacity-40 truncate">
-            {language === 'ar' ? 'مراقبة عالمية مباشرة' : 'REAL-TIME GLOBAL MONITORING'} <span className="hidden md:inline">· FLIGHTS · MARITIME · SATELLITES · CCTV · WEATHER · CYBER THREATS</span>
+            REAL-TIME GLOBAL MONITORING <span className="hidden md:inline">· FLIGHTS · MARITIME · SATELLITES · CCTV · WEATHER · CYBER THREATS</span><span className="oculix-credit"> · MADE BY ABDULLAH QATAN</span>
           </span>
         </div>
       </motion.div>
 
 
       {/* ── TOP-RIGHT STATUS (desktop) ── */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 3 }} className="legacy-status status-bar-desktop absolute top-4 right-6 z-[200] pointer-events-none flex items-center gap-3 text-[10px] font-mono tracking-widest text-[var(--text-muted)]">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 3 }} className="status-bar-desktop absolute top-4 right-6 z-[200] pointer-events-none flex items-center gap-3 text-[10px] font-mono tracking-widest text-[var(--text-muted)]">
 
         <span className="hidden lg:inline-flex items-center gap-1.5">
           <ZuluClock />
@@ -1301,23 +1220,23 @@ export default function Dashboard() {
 
         <span className="hidden lg:inline-flex items-center gap-1" title="Number of active data layers">
           <span className="text-[var(--cyan-primary)] font-bold">{Object.values(activeLayers).filter(Boolean).length}</span>
-          <span className="opacity-60">{language === 'ar' ? 'طبقات' : 'LAYERS'}</span>
+          <span className="opacity-60">LAYERS</span>
         </span>
 
         <span className="hidden lg:inline-flex items-center gap-1" title="Tracked entities on map">
           <ActiveEntityCount data={data} />
-          <span className="opacity-60">{language === 'ar' ? 'كيانات' : 'ENTITIES'}</span>
+          <span className="opacity-60">ENTITIES</span>
         </span>
 
         {spaceWeather && <span className="hidden lg:inline" title={`Geomagnetic Storm Index — Kp${spaceWeather.kp_index}`}>SOLAR: <span style={{ color: spaceWeather.storm_color, fontWeight: 700 }}>Kp{spaceWeather.kp_index}</span></span>}
 
-        <span className="text-[11px] font-bold tracking-[0.2em] text-[var(--text-muted)] opacity-50">V.5.0</span>
-
+        <span className="text-[11px] font-bold tracking-[0.2em] text-[var(--text-muted)] opacity-50">V.4.1</span>
+        
         <TokenPanel />
 
-        <a href='https://ko-fi.com/M8D41ZYW4Z' target='_blank' rel='noopener noreferrer' className="pointer-events-auto glass-panel px-3 py-1.5 flex items-center gap-1.5 text-[9px] font-mono tracking-widest hover:opacity-80 transition-opacity border-[var(--gold-primary)]/40 bg-[var(--gold-primary)]/10 ml-3 shadow-[0_0_10px_rgba(196,181,253,0.1)]">
+        <a href='https://ko-fi.com/M8D41ZYW4Z' target='_blank' rel='noopener noreferrer' className="pointer-events-auto glass-panel px-3 py-1.5 flex items-center gap-1.5 text-[9px] font-mono tracking-widest hover:opacity-80 transition-opacity border-[var(--gold-primary)]/40 bg-[var(--gold-primary)]/10 ml-3 shadow-[0_0_10px_rgba(255,215,0,0.1)]">
           <div className="w-1.5 h-1.5 rounded-full bg-[var(--gold-primary)] animate-oculix-pulse" />
-          <span className="text-[var(--gold-primary)] font-bold">{language === 'ar' ? 'دعم' : 'SUPPORT'}</span>
+          <span className="text-[var(--gold-primary)] font-bold">SUPPORT</span>
         </a>
       </motion.div>
 
@@ -1329,7 +1248,7 @@ export default function Dashboard() {
           <TokenPanel />
           <a href='https://ko-fi.com/M8D41ZYW4Z' target='_blank' rel='noopener noreferrer' className="glass-panel px-2 py-1 flex items-center gap-1.5 text-[9px] font-mono tracking-widest hover:opacity-80 transition-opacity border-[var(--gold-primary)]/40 bg-[var(--gold-primary)]/10">
             <div className="w-1 h-1 rounded-full bg-[var(--gold-primary)] animate-oculix-pulse" />
-            <span className="text-[var(--gold-primary)] font-bold">{language === 'ar' ? 'دعم' : 'SUPPORT'}</span>
+            <span className="text-[var(--gold-primary)] font-bold">SUPPORT</span>
           </a>
         </motion.div>
       )}
@@ -1342,7 +1261,7 @@ export default function Dashboard() {
 
 
       {/* ── RIGHT TOOL STRIP (desktop only — mobile uses bottom nav) ── */}
-      {!isMobile && showAdvancedTools && <div className={`${showAdvancedTools ? '' : 'nexus-legacy-hidden'} legacy-tool-rail absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-[250] pointer-events-auto bg-black/40 backdrop-blur-sm p-1 rounded-full border border-white/5`}>
+      {!isMobile && <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-[250] pointer-events-auto bg-black/40 backdrop-blur-sm p-1 rounded-full border border-white/5">
         <div className="relative group">
           <button onClick={() => { setShowIntel(!showIntel); setShowMarkets(false); setShowAlerts(false); }} className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-white/50 ${showIntel ? 'bg-[var(--cyan-primary)]/20' : 'hover:bg-white/10'}`} title="OSINT Recon — IP lookup, network sweep, geolocation" aria-label="OSINT Recon" aria-expanded={showIntel}>
             <Radar className={`w-4 h-4 ${showIntel ? 'text-[var(--cyan-primary)]' : 'text-white/60'}`} />
@@ -1370,12 +1289,12 @@ export default function Dashboard() {
         </div>
 
         <div className="relative group">
-          <button onClick={() => { setShowIntel(false); setShowAlerts(false); setShowMarkets(false); setShowSpaceCam(v => !v); }} className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-white/50 ${showSpaceCam ? 'bg-[#22D3EE]/20' : 'hover:bg-white/10'}`} title="Live from Space — 24/7 video downlink from the ISS" aria-label="Live from Space" aria-expanded={showSpaceCam}>
-            <Radio className={`w-4 h-4 ${showSpaceCam ? 'text-[#22D3EE]' : 'text-white/60'}`} />
+          <button onClick={() => { setShowIntel(false); setShowAlerts(false); setShowMarkets(false); setShowSpaceCam(v => !v); }} className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-white/50 ${showSpaceCam ? 'bg-[#00E5FF]/20' : 'hover:bg-white/10'}`} title="Live from Space — 24/7 video downlink from the ISS" aria-label="Live from Space" aria-expanded={showSpaceCam}>
+            <Radio className={`w-4 h-4 ${showSpaceCam ? 'text-[#00E5FF]' : 'text-white/60'}`} />
             {showSpaceCam && (
               <span
                 aria-hidden="true"
-                className="absolute -right-1 top-1/2 -translate-y-1/2 h-4 w-[2px] rounded-full bg-current text-[#22D3EE]"
+                className="absolute -right-1 top-1/2 -translate-y-1/2 h-4 w-[2px] rounded-full bg-current text-[#00E5FF]"
               />
             )}
           </button>
@@ -1430,12 +1349,12 @@ export default function Dashboard() {
         </div>
 
         <div className="relative group">
-          <button onClick={() => { setShowDrawing(!showDrawing); setShowIntel(false); setShowMarkets(false); setShowAlerts(false); setShowSpaceCam(false); }} className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-white/50 ${showDrawing ? 'bg-[#22D3EE]/20' : 'hover:bg-white/10'}`} title="Draw — measure areas of interest on the map" aria-label="Draw" aria-expanded={showDrawing}>
-            <PenLine className={`w-4 h-4 ${showDrawing ? 'text-[#22D3EE]' : 'text-white/60'}`} />
+          <button onClick={() => { setShowDrawing(!showDrawing); setShowIntel(false); setShowMarkets(false); setShowAlerts(false); setShowSpaceCam(false); }} className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-white/50 ${showDrawing ? 'bg-[#00E5FF]/20' : 'hover:bg-white/10'}`} title="Draw — measure areas of interest on the map" aria-label="Draw" aria-expanded={showDrawing}>
+            <PenLine className={`w-4 h-4 ${showDrawing ? 'text-[#00E5FF]' : 'text-white/60'}`} />
             {showDrawing && (
               <span
                 aria-hidden="true"
-                className="absolute -right-1 top-1/2 -translate-y-1/2 h-4 w-[2px] rounded-full bg-current text-[#22D3EE]"
+                className="absolute -right-1 top-1/2 -translate-y-1/2 h-4 w-[2px] rounded-full bg-current text-[#00E5FF]"
               />
             )}
           </button>
@@ -1496,7 +1415,7 @@ export default function Dashboard() {
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="absolute right-12 top-1/2 -translate-y-1/2 w-[340px]">
                 <div className="glass-panel p-3 max-h-[70vh] overflow-y-auto styled-scrollbar">
                   <ArcGISPanel
-                    onImportLayer={(layer) => setArcgisLayers(prev => [...prev.filter(l => l.id !== layer.id), { ...layer, color: layer.color || '#8B5CF6', visible: true, opacity: layer.opacity ?? 0.8 }])}
+                    onImportLayer={(layer) => setArcgisLayers(prev => [...prev.filter(l => l.id !== layer.id), { ...layer, color: layer.color || '#D4AF37', visible: true, opacity: layer.opacity ?? 0.8 }])}
                     onRemoveLayer={(id) => setArcgisLayers(prev => prev.filter(l => l.id !== id))}
                     onUpdateLayer={(id, updates) => setArcgisLayers(prev => prev.map(l => l.id === id ? { ...l, ...updates } : l))}
                     importedLayers={arcgisLayers}
@@ -1637,19 +1556,19 @@ export default function Dashboard() {
       {isMobile && (
         <>
           {/* Mobile Bottom Navigation */}
-          <div className="legacy-mobile-nav mobile-nav">
+          <div className="mobile-nav">
             <div className="glass-panel mobile-nav-inner">
               {[
-                { id: 'layers' as const, icon: Layers, label: language === 'ar' ? 'الطبقات' : 'LAYERS' },
-                { id: 'markets' as const, icon: BarChart3, label: language === 'ar' ? 'الأسواق' : 'MARKETS' },
-                { id: 'intel' as const, icon: Newspaper, label: language === 'ar' ? 'الأخبار' : 'INTEL' },
-                { id: 'recon' as const, icon: Radar, label: language === 'ar' ? 'تحليل' : 'RECON' },
-                { id: 'search' as const, icon: Search, label: language === 'ar' ? 'بحث' : 'SEARCH' },
+                { id: 'layers' as const, icon: Layers, label: 'LAYERS' },
+                { id: 'markets' as const, icon: BarChart3, label: 'MARKETS' },
+                { id: 'intel' as const, icon: Newspaper, label: 'INTEL' },
+                { id: 'recon' as const, icon: Radar, label: 'RECON' },
+                { id: 'search' as const, icon: Search, label: 'SEARCH' },
                 // Routing was reachable only from the desktop tool rail, so a
                 // phone could not open it at all. It sits next to SEARCH
                 // because both answer "take me somewhere".
-                { id: 'route' as const, icon: Route, label: language === 'ar' ? 'مسار' : 'ROUTE' },
-                { id: 'remote' as const, icon: Bluetooth, label: language === 'ar' ? 'بعيد' : 'REMOTE' },
+                { id: 'route' as const, icon: Route, label: 'ROUTE' },
+                { id: 'remote' as const, icon: Bluetooth, label: 'REMOTE' },
               ].map(tab => {
                 // Routing opens the planner at the top of the screen rather than
                 // the bottom drawer — it needs the room above the keyboard, and
@@ -1700,7 +1619,7 @@ export default function Dashboard() {
                 <div className="px-3 pb-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="hud-text text-[10px] text-[var(--text-primary)]">
-                      {mobilePanel === 'layers' ? (language === 'ar' ? 'الطبقات والإحصاءات' : 'LAYERS & STATS') : mobilePanel === 'markets' ? (language === 'ar' ? 'الأسواق والذكاء' : 'MARKETS & INTEL') : mobilePanel === 'intel' ? (language === 'ar' ? 'موجز الأخبار' : 'INTEL FEED') : mobilePanel === 'recon' ? (language === 'ar' ? 'التحليل والاستطلاع' : 'OCULIX RECON') : mobilePanel === 'remote' ? (language === 'ar' ? 'التحكم البعيد' : 'WORLD REMOTE') : (language === 'ar' ? 'بحث' : 'SEARCH')}
+                      {mobilePanel === 'layers' ? 'LAYERS & STATS' : mobilePanel === 'markets' ? 'MARKETS & INTEL' : mobilePanel === 'intel' ? 'INTEL FEED' : mobilePanel === 'recon' ? 'OCULIX RECON' : mobilePanel === 'remote' ? 'WORLD REMOTE' : 'SEARCH'}
                     </span>
                     <button onClick={() => setMobilePanel(null)} className="text-[var(--text-muted)] p-1"><X className="w-4 h-4" /></button>
                   </div>
@@ -1865,36 +1784,15 @@ export default function Dashboard() {
         </div>
       ))}
 
-      {/* Settings */}
-      <SettingsPanel
-        open={showSettings}
-        onClose={() => setShowSettings(false)}
-        language={language}
-        setLanguage={setLanguage}
-        theme={uiTheme}
-        setTheme={setUiTheme}
-        showAdvancedTools={showAdvancedTools}
-        setShowAdvancedTools={setShowAdvancedTools}
-        showTicker={showTicker}
-        setShowTicker={setShowTicker}
-        showGrid={showGrid}
-        setShowGrid={setShowGrid}
-        reducedMotion={reducedMotion}
-        setReducedMotion={setReducedMotion}
-        showLayers={showLayers}
-        setShowLayers={setShowLayers}
-        onResetView={() => { openMapView(); setMapProjection('globe'); setMapStyle('dark'); setFlyToLocation({ lat: 20, lng: 0, zoom: 2.5, ts: Date.now() }); }}
-      />
-
       {/* Keyboard Shortcuts Overlay */}
       <KeyboardShortcuts />
 
       {/* ── GLOBAL STATUS TICKER (bottom) ── */}
-      {showTicker && <GlobalStatusBar />}
+      <GlobalStatusBar />
 
       {/* Shortcut hint — more visible */}
-      <div className="legacy-shortcut desktop-only absolute bottom-[26px] right-5 z-[200] pointer-events-none text-[9px] font-mono text-[var(--text-muted)] opacity-50 tracking-widest" title="Press ? to see all keyboard shortcuts">
-        {language === 'ar' ? <>اضغط <span className="text-[var(--gold-primary)] opacity-80">?</span> للاختصارات · <span className="text-[var(--gold-primary)] opacity-80">F</span> ملء الشاشة · <span className="text-[var(--gold-primary)] opacity-80">R</span> إعادة العرض</> : <>Press <span className="text-[var(--gold-primary)] opacity-80">?</span> for shortcuts · <span className="text-[var(--gold-primary)] opacity-80">F</span> fullscreen · <span className="text-[var(--gold-primary)] opacity-80">R</span> reset view</>} · Made by Abdullah Qatan
+      <div className="desktop-only absolute bottom-[26px] right-5 z-[200] pointer-events-none text-[9px] font-mono text-[var(--text-muted)] opacity-50 tracking-widest" title="Press ? to see all keyboard shortcuts">
+        Press <span className="text-[var(--gold-primary)] opacity-80">?</span> for shortcuts · <span className="text-[var(--gold-primary)] opacity-80">F</span> fullscreen · <span className="text-[var(--gold-primary)] opacity-80">R</span> reset view
       </div>
 
 

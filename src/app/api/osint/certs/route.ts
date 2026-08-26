@@ -27,7 +27,7 @@ export async function GET(req: Request) {
     }
 
     const certs = await res.json();
-
+    
     // Deduplicate by common name and extract subdomains
     const seen = new Set<string>();
     const subdomains = new Set<string>();

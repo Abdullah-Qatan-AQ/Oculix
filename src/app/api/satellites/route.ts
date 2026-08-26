@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { stealthFetch } from '@/lib/stealthFetch';
+import { propagateTLE } from '@/lib/orbit';
 
 export const maxDuration = 60;
 
@@ -14,7 +15,7 @@ export const maxDuration = 60;
 const MISSION_CLASSIFY: Record<string, { mission: string; color: string }> = {
   'USA': { mission: 'Military Recon', color: '#FF3D3D' },
   'NROL': { mission: 'NRO Classified', color: '#FF3D3D' },
-  'LACROSSE': { mission: 'SAR Imaging', color: '#22D3EE' },
+  'LACROSSE': { mission: 'SAR Imaging', color: '#00E5FF' },
   'MENTOR': { mission: 'SIGINT', color: '#FFFFFF' },
   'ORION': { mission: 'SIGINT', color: '#FFFFFF' },
   'TRUMPET': { mission: 'SIGINT', color: '#FFFFFF' },
@@ -50,86 +51,27 @@ function classifySatellite(name: string): { mission: string; color: string } {
   for (const [keyword, info] of Object.entries(MISSION_CLASSIFY)) {
     if (upper.includes(keyword)) return info;
   }
-  return { mission: 'Unknown', color: '#22D3EE' };
+  return { mission: 'Unknown', color: '#00E5FF' };
 }
 
-function gmst(jd: number): number {
-  const t = (jd - 2451545.0) / 36525.0;
-  const gmstSec = 67310.54841 + (876600.0 * 3600 + 8640184.812866) * t + 0.093104 * t * t - 6.2e-6 * t * t * t;
-  return ((gmstSec % 86400) / 86400.0) * 2 * Math.PI;
-}
-
-// No longer needed: function parseTLE(tleText: string) {}
-
+/**
+ * Position for one TLE, in the shape this route returns.
+ *
+ * This used to be a hand-rolled two-body Kepler solve: no J2, no drag, and it
+ * reported geocentric latitude and altitude above a 6371 km sphere. Good
+ * enough for a dot on a flat map, but the globe now draws satellites at their
+ * altitude, and an orbit placed by that solve sits visibly off the satellite
+ * it belongs to. src/lib/orbit.ts wraps satellite.js (already a dependency,
+ * previously unused) for real SGP4/SDP4 and geodetic coordinates.
+ */
 function propagateSGP4Simple(line1: string, line2: string): { lat: number; lng: number; alt: number } | null {
-  try {
-    const incDeg = parseFloat(line2.substring(8, 16));
-    const raanDeg = parseFloat(line2.substring(17, 25));
-    const eccStr = '0.' + line2.substring(26, 33).trim();
-    const ecc = parseFloat(eccStr);
-    const argPerDeg = parseFloat(line2.substring(34, 42));
-    const meanAnomDeg = parseFloat(line2.substring(43, 51));
-    const meanMotion = parseFloat(line2.substring(52, 63));
-
-    if (isNaN(meanMotion) || meanMotion === 0) return null;
-
-    const now = new Date();
-    const epochYear = parseInt(line1.substring(18, 20));
-    const epochDay = parseFloat(line1.substring(20, 32));
-    const fullYear = epochYear > 56 ? 1900 + epochYear : 2000 + epochYear;
-
-    const epochDate = new Date(fullYear, 0, 1);
-    epochDate.setDate(epochDate.getDate() + epochDay - 1);
-    const elapsedMin = (now.getTime() - epochDate.getTime()) / 60000;
-
-    // Reject stale TLEs (> 90 days old) unless it's the emergency fallback
-    if (Math.abs(elapsedMin) > 129600 && !line1.includes('27885-3')) return null;
-
-    const n = meanMotion * 2 * Math.PI / 1440;
-    const M = ((meanAnomDeg * Math.PI / 180) + n * elapsedMin) % (2 * Math.PI);
-
-    let E = M;
-    for (let j = 0; j < 10; j++) {
-      E = M + ecc * Math.sin(E);
-    }
-
-    const sinV = Math.sqrt(1 - ecc * ecc) * Math.sin(E) / (1 - ecc * Math.cos(E));
-    const cosV = (Math.cos(E) - ecc) / (1 - ecc * Math.cos(E));
-    const v = Math.atan2(sinV, cosV);
-
-    const a = Math.pow(398600.4418 / (meanMotion * 2 * Math.PI / 86400) ** 2, 1 / 3);
-    const r = a * (1 - ecc * Math.cos(E));
-
-    const inc = incDeg * Math.PI / 180;
-    const raan = raanDeg * Math.PI / 180;
-    const argPer = argPerDeg * Math.PI / 180;
-    const u = v + argPer;
-
-    const x = r * (Math.cos(raan) * Math.cos(u) - Math.sin(raan) * Math.sin(u) * Math.cos(inc));
-    const y = r * (Math.sin(raan) * Math.cos(u) + Math.cos(raan) * Math.sin(u) * Math.cos(inc));
-    const z = r * Math.sin(u) * Math.sin(inc);
-
-    const jd = 2440587.5 + now.getTime() / 86400000;
-    const theta = gmst(jd);
-
-    const xRot = x * Math.cos(theta) + y * Math.sin(theta);
-    const yRot = -x * Math.sin(theta) + y * Math.cos(theta);
-
-    const lng = Math.atan2(yRot, xRot) * 180 / Math.PI;
-    const lat = Math.atan2(z, Math.sqrt(xRot * xRot + yRot * yRot)) * 180 / Math.PI;
-    const alt = r - 6371;
-
-    if (isNaN(lat) || isNaN(lng) || Math.abs(lat) > 90) return null;
-    if (alt < 100 || alt > 50000) return null; // sanity check
-
-    return {
-      lat: Math.round(lat * 10000) / 10000,
-      lng: Math.round(((lng + 540) % 360 - 180) * 10000) / 10000,
-      alt: Math.round(alt),
-    };
-  } catch {
-    return null;
-  }
+  const p = propagateTLE(line1, line2);
+  if (!p) return null;
+  return {
+    lat: Math.round(p.lat * 10000) / 10000,
+    lng: Math.round(p.lng * 10000) / 10000,
+    alt: Math.round(p.altKm),
+  };
 }
 
 // CelesTrak constellation groups — many smaller groups to avoid 403 rate limits
@@ -137,7 +79,7 @@ const CT = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=';
 const FMT = '&FORMAT=tle';
 const CELESTRAK_GROUPS = [
   // Full catalogs
-  `${CT}active${FMT}`,
+  `${CT}active${FMT}`, 
   // Use supplemental feed for Starlink to avoid strict rate limits on the primary group
   `https://celestrak.org/NORAD/elements/supplemental/sup-gp.php?FILE=starlink&FORMAT=tle`,
   // Navigation (GPS, GLONASS, Galileo, BeiDou)
@@ -253,15 +195,15 @@ export async function GET() {
     let source = 'memory-cache';
 
     if (globalCachedSats.length === 0 || globalCachedSats.length < 5000 || nowTime - globalCacheTime > 3600000) { // refresh if empty, too few, or stale
-
+      
       // Primary: Fetch multiple CelesTrak groups in parallel
       const groupResults = await Promise.allSettled(
         CELESTRAK_GROUPS.map(url => fetchCelesTrakGroup(url))
       );
-
+      
       const seen = new Set<string>();
       const merged: { name: string; line1: string; line2: string }[] = [];
-
+      
       // 1. Add all newly fetched satellites
       for (const result of groupResults) {
         if (result.status === 'fulfilled') {
@@ -274,7 +216,7 @@ export async function GET() {
           }
         }
       }
-
+      
       // 2. Backfill with cached satellites that failed to fetch this time (due to rate limits)
       let backfilled = 0;
       for (const sat of globalCachedSats) {
@@ -285,7 +227,7 @@ export async function GET() {
           backfilled++;
         }
       }
-
+      
       if (merged.length > 500) {
         globalCachedSats = merged;
         globalCacheTime = nowTime;
@@ -302,7 +244,7 @@ export async function GET() {
             signal: AbortSignal.timeout(15000),
             headers: { 'Accept': 'application/json' },
           });
-
+          
           if (res.ok) {
             const data = await res.json();
             const fetchedSats: any[] = [];
@@ -320,7 +262,7 @@ export async function GET() {
                 });
               }
             }
-
+            
             if (fetchedSats.length > 0) {
               globalCachedSats = fetchedSats;
               globalCacheTime = nowTime;
@@ -349,12 +291,12 @@ export async function GET() {
       if (!pos) continue;
 
       const classification = classifySatellite(sat.name);
-
+      
       // High-level category for sub-layer filtering
       let category = 'other';
       const m = classification.mission;
       const upperName = sat.name.toUpperCase();
-
+      
       // Debris detection
       if (upperName.includes(' DEB') || upperName.includes('DEBRIS') || upperName.includes(' R/B')) {
         category = 'other'; // debris goes to "other" category
@@ -376,8 +318,8 @@ export async function GET() {
       });
     }
 
-    const cacheControl = satellites.length < 10
-      ? 'no-store, max-age=0'
+    const cacheControl = satellites.length < 10 
+      ? 'no-store, max-age=0' 
       : 'public, s-maxage=120, stale-while-revalidate=300';
 
     // Count by category

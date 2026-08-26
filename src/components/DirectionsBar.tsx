@@ -942,7 +942,7 @@ export default function DirectionsBar({ onRoute, onLocate, onClose, center = nul
                   <svg viewBox="0 0 300 40" className="w-full h-10" preserveAspectRatio="none" aria-hidden="true">
                     <path
                       d={`${elevationPath(route.elevation, 300, 38)} L300,40 L0,40 Z`}
-                      fill="rgba(34,211,238,0.12)"
+                      fill="rgba(0,229,255,0.12)"
                     />
                     <path
                       d={elevationPath(route.elevation, 300, 38)}

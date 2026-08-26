@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const response = await fetch(`${gpuUrl}/geolocate`, { signal: AbortSignal.timeout(30000),
       method: 'POST',
       body: proxyFormData as any, // Node types sometimes complain about fetch FormData
-      // Disable timeout or set very high if using a custom fetch agent,
+      // Disable timeout or set very high if using a custom fetch agent, 
       // but native fetch doesn't timeout natively on Node unless specified.
     });
 

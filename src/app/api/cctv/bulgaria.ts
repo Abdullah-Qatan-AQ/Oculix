@@ -16,7 +16,7 @@ const BULGARIA_MANUAL: CctvCamera[] = [
     feed_url: 'https://meteo.chavo.biz/Camera_streem/live_snap.jpg',
     source: 'meteo.chavo.biz',
   },
-
+  
 
   {
     id: 'bg-burgas-center',

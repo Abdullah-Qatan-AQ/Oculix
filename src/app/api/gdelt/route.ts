@@ -42,7 +42,7 @@ export async function GET() {
 
     for (const rawItem of rawItems) {
       const item = rawItem.split(/<\/item>/i)[0]; // get content up to </item>
-
+      
       const titleMatch = item.match(/<title>(.*?)<\/title>/i) || item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/i);
       const linkMatch = item.match(/<link>(.*?)<\/link>/i);
       const descMatch = item.match(/<description>(.*?)<\/description>/i) || item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/i);

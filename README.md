@@ -1,19 +1,19 @@
 <div align="center">
 
-# OX // Oculix
+# ⬡ OCULIX
 
 ### Open Source Intelligence & Reconnaissance Integrated System
 
-[![Oculix](https://img.shields.io/badge/Oculix-Live_Signal_Intelligence-8B5CF6?style=for-the-badge&logo=vercel&logoColor=white)](https://oculix.example)
-[![Support Oculix](https://img.shields.io/badge/Support_Project-Patreon-FF424D?style=for-the-badge&logo=patreon&logoColor=white)](https://www.patreon.com/posts/159077425)
+[![Live Demo](https://img.shields.io/badge/oculixai.live-00E5FF?style=for-the-badge&logo=vercel&logoColor=white)](https://oculixlive.app)
+[![Support OCULIX](https://img.shields.io/badge/Support_Project-Patreon-FF424D?style=for-the-badge&logo=patreon&logoColor=white)](https://www.patreon.com/posts/159077425)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![MapLibre](https://img.shields.io/badge/MapLibre_GL-GPU_Rendered-396CB2?style=for-the-badge)](https://maplibre.org)
-[![License](https://img.shields.io/badge/License-MIT-8B5CF6?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-D4AF37?style=for-the-badge)](LICENSE)
 
-**Oculix is a real-time global intelligence dashboard that aggregates live flight tracking, CCTV networks, earthquake monitoring, conflict zone mapping, and 24/7 news feeds into a single GPU-accelerated interface.**
+**A real-time global intelligence dashboard that aggregates live flight tracking, CCTV networks, earthquake monitoring, conflict zone mapping, and 24/7 news feeds into a single GPU-accelerated interface.**
 
-[Live Demo](https://oculix.example) · [Report Bug](https://github.com/your-github-account/oculix/issues) · [Request Feature](https://github.com/your-github-account/oculix/issues) · [Join Discord](https://discord.gg/umBykEpb98)
+[Live Demo](https://oculixai.live) · [Report Bug](https://github.com/your-github-account/oculix/issues) · [Request Feature](https://github.com/your-github-account/oculix/issues) · [Join Discord](https://discord.gg/umBykEpb98)
 
 </div>
 
@@ -231,21 +231,15 @@ MIT — see [LICENSE](LICENSE) for details.
 **🛠️ SUPPORT THE OCULIX PROJECT**
 The OCULIX Global Intelligence Grid is entirely open-source, but running the backend scanners and data firehoses isn't cheap.
 
-If you want to help keep the servers alive, and support us to get access to better tools  unlock the **Special OCULIX Console**, Currently Just a Cool UI. a you can officially support the project here :
+If you want to help keep the servers alive, and support us to get access to better tools  unlock the **Special OCULIX Console**, Currently Just a Cool UI. a you can officially support the project here : 
 
 🔗 [Support OCULIX on Patreon](https://www.patreon.com/posts/159077425)
 
 *Supporters receive the `🔴 RedTeam Console` role and access to encrypted developer comms.*
 
 
-**Built by [your-github-account](https://github.com/your-github-account)**
+**Built by [Abdullah-Qatan](https://github.com/Abdullah-Qatan)**
 
 [Join our Discord to be a part of this movement!](https://discord.gg/umBykEpb98)
 
 </div>
-
-## Install as an app
-
-Oculix Nexus is installable as a PWA. Run the production server or deploy the project over HTTPS, open the site in a supported browser, and use the **Install** prompt or the browser's install command. The app manifest is available at `/site.webmanifest`, the service worker is `/sw.js`, and the map shortcut is available at `/?view=map`.
-
-On iOS, use the browser's **Add to Home Screen** command. Live feeds still require network access after installation; the service worker caches the app shell but deliberately does not cache dynamic intelligence APIs.

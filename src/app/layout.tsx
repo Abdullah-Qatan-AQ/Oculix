@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from "next";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import "./globals.css";
 
-const SITE_URL = "https://oculix.example";
+const SITE_URL = "https://oculixai.live";
 const SITE_NAME = "OCULIX";
 const SITE_TITLE = "OCULIX — Open Source Intelligence Platform | Live Flight Tracking, CCTV, OSINT Tools & More";
 const SITE_DESCRIPTION = "The open-source Palantir alternative. Track 10,000+ aircraft, 2,000 satellites, and worldwide CCTV cameras in real-time on a 3D globe. Run Nmap scans, DNS lookups, WHOIS queries, SSL cert analysis & threat intelligence — all from your browser. 20+ live data feeds including earthquakes, wildfires, nuclear facilities, cyber threats, and global conflicts. Free & open source.";
 
 export const viewport: Viewport = {
-  themeColor: "#8B5CF6",
+  themeColor: "#D4AF37",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -33,12 +33,12 @@ export const metadata: Metadata = {
     "network reconnaissance", "recon tools", "penetration testing tools",
     "cybersecurity tools", "infosec tools", "security scanner",
     "linux OSINT tools", "kali linux tools online", "OSINT browser tools",
-
+    
     // Intelligence Platform
     "OSINT", "open source intelligence", "intelligence platform", "global intelligence",
     "geospatial intelligence", "GEOINT", "SIGINT", "real-time tracking",
     "palantir alternative", "open source palantir", "intelligence dashboard",
-
+    
     // Tracking & Data
     "flight tracker", "aircraft tracking", "ADS-B tracker", "live flight radar",
     "satellite tracking", "ISS tracker", "space station tracker",
@@ -50,9 +50,9 @@ export const metadata: Metadata = {
     "cyber threats dashboard", "CVE tracker",
     "space weather", "solar storm", "GPS jamming",
     "defense stocks", "commodities tracker",
-
+    
     // Brand
-    "oculix", "oculixai", "oculix.example",
+    "oculix", "oculixai", "oculixai.live",
   ],
   authors: [{ name: "Oculix Project", url: SITE_URL }],
   creator: "Oculix Project",
@@ -111,8 +111,8 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "🛰️ OCULIX — Open Source Palantir Alternative | Live Tracking + OSINT Tools",
     description: "Track 10K+ flights, satellites & CCTV worldwide. Run Nmap, DNS, WHOIS scans from your browser. 20+ live intel feeds. Free & open source.",
-    creator: "@oculix_app",
-    site: "@oculix_app",
+    creator: "@Abdullah-Qatan",
+    site: "@Abdullah-Qatan",
     images: [`${SITE_URL}/og-image.png`],
   },
   category: "technology",
@@ -189,7 +189,7 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="canonical" href={SITE_URL} />
-
+        
         {/* JSON-LD Structured Data */}
         <script
           type="application/ld+json"

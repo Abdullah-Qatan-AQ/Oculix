@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.arrayBuffer();
-
+    
     // Forward the content-type from the upstream response
     const contentType = response.headers.get('content-type') || 'application/octet-stream';
 
