@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Layers, BarChart3, Newspaper, Search, X, Globe, MapPinned, Route, Radar, Satellite, Moon, ExternalLink, AlertTriangle, Activity, Database, Wifi, Play, Network, Crosshair, Bluetooth, Pentagon, Radio , PenLine, Settings2 } from 'lucide-react';
+import { Layers, BarChart3, Newspaper, Search, X, Globe, MapPinned, Route, Radar, Satellite, Moon, ExternalLink, AlertTriangle, Activity, Database, Wifi, Play, Network, Crosshair, Bluetooth, Pentagon, Radio , PenLine, Settings2, MoreHorizontal, Bookmark } from 'lucide-react';
 import IntelFeed from '@/components/IntelFeed';
 import MarketsPanel from '@/components/MarketsPanel';
 import ScmPanel from '@/components/ScmPanel';
@@ -231,7 +231,9 @@ export default function Dashboard() {
   const [arcgisLayers, setArcgisLayers] = useState<Array<{ id: string; title: string; url: string; geojson: any; color: string; visible: boolean; opacity: number }>>([]);
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number; bounds?: { west: number; south: number; east: number; north: number } } | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [mobilePanel, setMobilePanel] = useState<'layers'|'markets'|'intel'|'search'|'recon'|'remote'|'route'|null>(null);
+  type MobileDrawer = 'more'|'layers'|'markets'|'intel'|'search'|'recon'|'remote'|'alerts'|'space'|'arcgis'|'scm'|'draw';
+  type MobileSurface = MobileDrawer | 'route'|'draw'|'settings'|'health'|'analyst'|'watchlists'|'command';
+  const [mobilePanel, setMobilePanel] = useState<MobileDrawer | null>(null);
   const [mapProjection, setMapProjection] = useState<'globe'|'mercator'>('globe');
   const [mapStyle, setMapStyle] = useState<'dark'|'satellite'>('dark');
   const [intelligenceMode, setIntelligenceMode] = useState<IntelligenceMode>('intelligence');
@@ -251,6 +253,32 @@ export default function Dashboard() {
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [visualOptions, setVisualOptions] = useState({ reducedMotion: false, grid: true, scanlines: true, ticker: true, ambient: true });
   const [pwaInstalled, setPwaInstalled] = useState(false);
+
+  const resetMobileSurfaces = useCallback(() => {
+    setMobilePanel(null);
+    setShowSettings(false); setShowSourceHealth(false); setShowAnalyst(false); setShowWatchlists(false); setShowCommandPalette(false);
+    setShowIntel(false); setShowMarkets(false); setShowAlerts(false); setShowSpaceCam(false); setShowDrawing(false); setShowDesktopSearch(false); setShowArcGIS(false); setShowRemote(false);
+    if (!navSession) setShowDirections(false);
+  }, [navSession]);
+
+  const openMobileSurface = useCallback((surface: MobileSurface) => {
+    if (surface === 'route') {
+      if (navSession) return;
+      resetMobileSurfaces(); setShowDirections(true); return;
+    }
+    if (surface === 'draw') { resetMobileSurfaces(); setShowDrawing(true); setMobilePanel('draw'); return; }
+    if (surface === 'settings' || surface === 'health' || surface === 'analyst' || surface === 'watchlists' || surface === 'command') {
+      resetMobileSurfaces();
+      if (surface === 'settings') setShowSettings(true);
+      if (surface === 'health') setShowSourceHealth(true);
+      if (surface === 'analyst') setShowAnalyst(true);
+      if (surface === 'watchlists') setShowWatchlists(true);
+      if (surface === 'command') setShowCommandPalette(true);
+      return;
+    }
+    if (mobilePanel === surface) { resetMobileSurfaces(); return; }
+    resetMobileSurfaces(); setMobilePanel(surface);
+  }, [mobilePanel, navSession, resetMobileSurfaces]);
 
   useEffect(() => {
     try {
@@ -910,24 +938,24 @@ export default function Dashboard() {
   const runCommand = useCallback((command: CommandId) => {
     const closePanels = () => { setShowIntel(false); setShowMarkets(false); setShowAlerts(false); setShowSpaceCam(false); setShowDrawing(false); setShowDesktopSearch(false); setShowDirections(false); setShowArcGIS(false); setShowRemote(false); setShowWatchlists(false); };
     switch (command) {
-      case 'layers': setShowLayers(true); setMobilePanel('layers'); break;
-      case 'search': closePanels(); setShowDesktopSearch(true); setMobilePanel('search'); break;
-      case 'markets': closePanels(); setShowMarkets(true); setMobilePanel('markets'); break;
-      case 'intel': case 'recon': closePanels(); setShowIntel(true); setMobilePanel('recon'); break;
-      case 'route': closePanels(); setShowDirections(true); setMobilePanel('route'); break;
-      case 'space': closePanels(); setShowSpaceCam(true); break;
-      case 'alerts': closePanels(); setShowAlerts(true); break;
-      case 'draw': closePanels(); setShowDrawing(true); break;
-      case 'arcgis': closePanels(); setShowArcGIS(true); break;
-      case 'remote': closePanels(); setShowRemote(true); break;
-      case 'settings': setShowSettings(true); break;
-      case 'health': setShowSourceHealth(true); break;
-      case 'analyst': setShowAnalyst(true); break;
-      case 'watchlists': setShowWatchlists(true); break;
+      case 'layers': isMobile ? openMobileSurface('layers') : (setShowLayers(true), setMobilePanel(null)); break;
+      case 'search': isMobile ? openMobileSurface('search') : (closePanels(), setShowDesktopSearch(true)); break;
+      case 'markets': isMobile ? openMobileSurface('markets') : (closePanels(), setShowMarkets(true)); break;
+      case 'intel': case 'recon': isMobile ? openMobileSurface('recon') : (closePanels(), setShowIntel(true)); break;
+      case 'route': isMobile ? openMobileSurface('route') : (closePanels(), setShowDirections(true)); break;
+      case 'space': isMobile ? openMobileSurface('space') : (closePanels(), setShowSpaceCam(true)); break;
+      case 'alerts': isMobile ? openMobileSurface('alerts') : (closePanels(), setShowAlerts(true)); break;
+      case 'draw': isMobile ? openMobileSurface('draw') : (closePanels(), setShowDrawing(true)); break;
+      case 'arcgis': isMobile ? openMobileSurface('arcgis') : (closePanels(), setShowArcGIS(true)); break;
+      case 'remote': isMobile ? openMobileSurface('remote') : (closePanels(), setShowRemote(true)); break;
+      case 'settings': isMobile ? openMobileSurface('settings') : setShowSettings(true); break;
+      case 'health': isMobile ? openMobileSurface('health') : setShowSourceHealth(true); break;
+      case 'analyst': isMobile ? openMobileSurface('analyst') : setShowAnalyst(true); break;
+      case 'watchlists': isMobile ? openMobileSurface('watchlists') : setShowWatchlists(true); break;
       case 'globe': setMapProjection('globe'); break;
       case 'map': setMapProjection('mercator'); break;
     }
-  }, []);
+  }, [isMobile, openMobileSurface]);
 
 
   return (
@@ -1405,11 +1433,11 @@ export default function Dashboard() {
       {/* ── MOBILE: Compact top status ── */}
       {/* The compact controls stay clear of the route planner on phone screens. */}
       {isMobile && !showDirections && !navSession && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.5 }} className="absolute top-3 right-3 z-[200] pointer-events-auto flex items-center gap-2">
-          <button type="button" onClick={() => setShowSettings(true)} className="glass-panel p-1.5 border border-[var(--cyan-primary)]/30 bg-[var(--cyan-primary)]/10" title={language === 'ar' ? 'الإعدادات' : 'Settings'} aria-label={language === 'ar' ? 'الإعدادات' : 'Settings'}><Settings2 className="w-3.5 h-3.5 text-[var(--cyan-primary)]" /></button>
-          <button type="button" onClick={() => setShowSourceHealth(true)} className="glass-panel p-1.5 border border-emerald-400/30 bg-emerald-400/10" title={language === 'ar' ? 'صحة المصادر' : 'Source Health'} aria-label={language === 'ar' ? 'صحة المصادر' : 'Source Health'}><Activity className="w-3.5 h-3.5 text-emerald-300" /></button>
-          <button type="button" onClick={() => setShowAnalyst(true)} className="glass-panel p-1.5 border border-violet-400/30 bg-violet-400/10" title={language === 'ar' ? 'وضع المحلل' : 'Analyst Mode'} aria-label={language === 'ar' ? 'وضع المحلل' : 'Analyst Mode'}><Crosshair className="w-3.5 h-3.5 text-violet-300" /></button>
-          <button type="button" onClick={() => setShowCommandPalette(true)} className="glass-panel px-1.5 py-1 text-[9px] font-mono text-white/70" title={language === 'ar' ? 'مركز الأوامر' : 'Command palette'} aria-label={language === 'ar' ? 'مركز الأوامر' : 'Command palette'}>⌘K</button>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.5 }} className="oculix-mobile-top-actions absolute top-3 right-3 z-[200] pointer-events-auto flex items-center gap-2">
+          <button type="button" onClick={() => openMobileSurface('settings')} className="glass-panel p-1.5 border border-[var(--cyan-primary)]/30 bg-[var(--cyan-primary)]/10" title={language === 'ar' ? 'الإعدادات' : 'Settings'} aria-label={language === 'ar' ? 'الإعدادات' : 'Settings'}><Settings2 className="w-3.5 h-3.5 text-[var(--cyan-primary)]" /></button>
+          <button type="button" onClick={() => openMobileSurface('health')} className="glass-panel p-1.5 border border-emerald-400/30 bg-emerald-400/10" title={language === 'ar' ? 'صحة المصادر' : 'Source Health'} aria-label={language === 'ar' ? 'صحة المصادر' : 'Source Health'}><Activity className="w-3.5 h-3.5 text-emerald-300" /></button>
+          <button type="button" onClick={() => openMobileSurface('analyst')} className="glass-panel p-1.5 border border-violet-400/30 bg-violet-400/10" title={language === 'ar' ? 'وضع المحلل' : 'Analyst Mode'} aria-label={language === 'ar' ? 'وضع المحلل' : 'Analyst Mode'}><Crosshair className="w-3.5 h-3.5 text-violet-300" /></button>
+          <button type="button" onClick={() => openMobileSurface('command')} className="glass-panel px-1.5 py-1 text-[9px] font-mono text-white/70" title={language === 'ar' ? 'مركز الأوامر' : 'Command palette'} aria-label={language === 'ar' ? 'مركز الأوامر' : 'Command palette'}>⌘K</button>
 
         </motion.div>
       )}
@@ -1720,42 +1748,19 @@ export default function Dashboard() {
           <div className="mobile-nav">
             <div className="glass-panel mobile-nav-inner">
               {[
-                { id: 'layers' as const, icon: Layers, label: 'LAYERS' },
-                { id: 'search' as const, icon: Search, label: 'SEARCH' },
-                { id: 'intel' as const, icon: Newspaper, label: 'INTEL' },
-                { id: 'markets' as const, icon: BarChart3, label: 'MARKETS' },
-                { id: 'recon' as const, icon: Radar, label: 'RECON' },
-                // Routing remains visible on phones, alongside the discovery
-                // tools, without changing its original navigation behavior.
-                { id: 'route' as const, icon: Route, label: 'ROUTE' },
-                { id: 'remote' as const, icon: Bluetooth, label: 'REMOTE' },
+                { id: 'layers' as const, icon: Layers, label: language === 'ar' ? 'الطبقات' : 'LAYERS' },
+                { id: 'search' as const, icon: Search, label: language === 'ar' ? 'البحث' : 'SEARCH' },
+                { id: 'intel' as const, icon: Newspaper, label: language === 'ar' ? 'الأخبار' : 'INTEL' },
+                { id: 'markets' as const, icon: BarChart3, label: language === 'ar' ? 'الأسواق' : 'MARKETS' },
+                { id: 'recon' as const, icon: Radar, label: language === 'ar' ? 'الاستطلاع' : 'RECON' },
+                { id: 'more' as const, icon: MoreHorizontal, label: language === 'ar' ? 'المزيد' : 'MORE' },
               ].map(tab => {
-                // Routing opens the planner at the top of the screen rather than
-                // the bottom drawer — it needs the room above the keyboard, and
-                // guidance has to stay readable while you drive.
-                const isRoute = tab.id === 'route';
-                const active = isRoute ? showDirections || Boolean(navSession) : mobilePanel === tab.id;
+                const active = mobilePanel === tab.id;
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => {
-                      if (isRoute) {
-                        // Mid-drive this must not touch anything: closing the
-                        // planner clears the active route, which would take the
-                        // line off the map underneath a driver. Guidance is
-                        // ended from the navigation view's own exit.
-                        if (navSession) return;
-                        setMobilePanel(null);
-                        setShowDirections((open) => {
-                          if (open) setActiveRoute(null);
-                          return !open;
-                        });
-                        return;
-                      }
-                      setMobilePanel(mobilePanel === tab.id ? null : tab.id);
-                    }}
+                    onClick={() => tab.id === 'more' ? openMobileSurface('more') : openMobileSurface(tab.id)}
                     aria-pressed={active}
-                    disabled={isRoute && Boolean(navSession)}
                     className={`mobile-nav-btn ${active ? 'active' : ''}`}
                   >
                     <tab.icon className={`w-4 h-4 ${tab.id === 'recon' ? 'text-[var(--cyan-primary)]' : ''}`} />
@@ -1766,23 +1771,47 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Mobile Drawer */}
+          {/* Mobile Drawer — the scrim makes the active surface explicit and dismissible. */}
+          <AnimatePresence>
+            {mobilePanel && <motion.button type="button" aria-label={language === 'ar' ? 'إغلاق اللوحة' : 'Close panel'} className="mobile-drawer-scrim" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => resetMobileSurfaces()} />}
+          </AnimatePresence>
           <AnimatePresence>
             {mobilePanel && (
               <motion.div
                 initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                className="fixed bottom-[52px] left-0 right-0 z-[400] glass-panel rounded-b-none overflow-y-auto styled-scrollbar"
+                className="mobile-drawer fixed bottom-[52px] left-0 right-0 z-[400] glass-panel rounded-b-none overflow-y-auto styled-scrollbar"
                 style={{ maxHeight: 'min(55vh, calc(100dvh - 100px))', paddingBottom: 'env(safe-area-inset-bottom, 4px)' }}
               >
                 <div className="mobile-drawer-handle" />
                 <div className="px-3 pb-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="hud-text text-[10px] text-[var(--text-primary)]">
-                      {language === 'ar' ? (mobilePanel === 'layers' ? 'الطبقات والإحصاءات' : mobilePanel === 'markets' ? 'الأسواق والاستخبارات' : mobilePanel === 'intel' ? 'موجز المعلومات' : mobilePanel === 'recon' ? 'استطلاع Oculix' : mobilePanel === 'remote' ? 'التحكم البعيد' : 'البحث') : (mobilePanel === 'layers' ? 'LAYERS & STATS' : mobilePanel === 'markets' ? 'MARKETS & INTEL' : mobilePanel === 'intel' ? 'INTEL FEED' : mobilePanel === 'recon' ? 'OCULIX RECON' : mobilePanel === 'remote' ? 'WORLD REMOTE' : 'SEARCH')}
+                      {language === 'ar' ? ({ more: 'المزيد من الأدوات', layers: 'الطبقات والإحصاءات', markets: 'الأسواق والاستخبارات', intel: 'موجز المعلومات', search: 'البحث والأماكن', recon: 'استطلاع Oculix', remote: 'التحكم البعيد', alerts: 'التنبيهات المباشرة', space: 'بث الفضاء', arcgis: 'طبقات ArcGIS', scm: 'مخاطر التوريد', draw: 'الرسم والقياس' }[mobilePanel]) : ({ more: 'MORE TOOLS', layers: 'LAYERS & STATS', markets: 'MARKETS & INTEL', intel: 'INTEL FEED', search: 'SEARCH & PLACES', recon: 'OCULIX RECON', remote: 'WORLD REMOTE', alerts: 'LIVE ALERTS', space: 'SPACE FEED', arcgis: 'ARCGIS LAYERS', scm: 'SUPPLY-CHAIN RISK', draw: 'DRAW & MEASURE' }[mobilePanel])}
                     </span>
                     <button onClick={() => setMobilePanel(null)} className="text-[var(--text-muted)] p-1"><X className="w-4 h-4" /></button>
                   </div>
+                  {mobilePanel === 'more' && (
+                    <div className="mobile-more-surface">
+                      <p className="mobile-surface-intro">{language === 'ar' ? 'الأدوات الكاملة موجودة هنا. افتح أداة واحدة في كل مرة لتبقى الخريطة واضحة.' : 'Every tool is available here. Open one surface at a time to keep the map clear.'}</p>
+                      <div className="mobile-more-grid">
+                        {([
+                          { id: 'route' as const, icon: Route, ar: 'المسارات', en: 'Routes' },
+                          { id: 'draw' as const, icon: PenLine, ar: 'الرسم والقياس', en: 'Draw & measure' },
+                          { id: 'alerts' as const, icon: AlertTriangle, ar: 'التنبيهات', en: 'Alerts' },
+                          { id: 'space' as const, icon: Radio, ar: 'بث الفضاء', en: 'Space feed' },
+                          { id: 'arcgis' as const, icon: Database, ar: 'طبقات ArcGIS', en: 'ArcGIS layers' },
+                          { id: 'scm' as const, icon: Network, ar: 'مخاطر التوريد', en: 'Supply-chain risk' },
+                          { id: 'remote' as const, icon: Bluetooth, ar: 'التحكم البعيد', en: 'Remote control' },
+                          { id: 'watchlists' as const, icon: Bookmark, ar: 'قوائم المتابعة', en: 'Watchlists' },
+                          { id: 'health' as const, icon: Activity, ar: 'صحة المصادر', en: 'Source health' },
+                          { id: 'analyst' as const, icon: Crosshair, ar: 'وضع المحلل', en: 'Analyst mode' },
+                          { id: 'settings' as const, icon: Settings2, ar: 'الإعدادات', en: 'Settings' },
+                          { id: 'command' as const, icon: Search, ar: 'البحث والأوامر', en: 'Search & commands' },
+                        ] as const).map(item => <button key={item.id} type="button" className="mobile-more-btn" onClick={() => openMobileSurface(item.id)}><item.icon size={17} /><span>{language === 'ar' ? item.ar : item.en}</span><small>{language === 'ar' ? 'فتح' : 'Open'}</small></button>)}
+                      </div>
+                    </div>
+                  )}
                   {mobilePanel === 'layers' && (
                     <>
                       <div className="glass-panel-sm p-2 mb-2">
@@ -1801,6 +1830,11 @@ export default function Dashboard() {
                     </>
                   )}
                   {mobilePanel === 'markets' && <MarketsPanel language={language} data={data} spaceWeather={spaceWeather} />}
+                  {mobilePanel === 'alerts' && <LiveAlerts language={language} data={data} onLocate={(lat, lng) => { setFlyToLocation({ lat, lng, ts: Date.now() }); setMobilePanel(null); }} onWatchFeed={(url, name) => { setLiveFeedUrl(url); setLiveFeedName(name); }} />}
+                  {mobilePanel === 'space' && <SpaceCam />}
+                  {mobilePanel === 'scm' && <ScmPanel data={data} />}
+                  {mobilePanel === 'arcgis' && <div className="glass-panel-sm p-2"><ArcGISPanel onImportLayer={(layer) => setArcgisLayers(prev => [...prev.filter(l => l.id !== layer.id), { ...layer, color: layer.color || '#D4AF37', visible: true, opacity: layer.opacity ?? 0.8 }])} onRemoveLayer={(id) => setArcgisLayers(prev => prev.filter(l => l.id !== id))} onUpdateLayer={(id, updates) => setArcgisLayers(prev => prev.map(l => l.id === id ? { ...l, ...updates } : l))} importedLayers={arcgisLayers} mapBounds={mapCenter?.bounds || null} /></div>}
+                  {mobilePanel === 'draw' && <div className="mobile-drawing-surface"><DrawingToolbar drawMode={drawMode} onSetDrawMode={setDrawMode} progress={drawProgress} polygons={drawnPolygons} onDeletePolygon={(id) => setDrawnPolygons(p => p.filter(x => x.id !== id))} onClearAll={() => { setDrawnPolygons([]); setSelectedPolygon(null); }} onExportGeoJSON={handleExportGeoJSON} selectedPolygon={selectedPolygon} onSelectPolygon={setSelectedPolygon} onRenamePolygon={(id, name) => setDrawnPolygons(p => p.map(x => x.id === id ? { ...x, name } : x))} data={data} onLocateEntity={(lat, lng) => setFlyToLocation({ lat, lng, zoom: 12, ts: Date.now() })} watched={watched} onToggleWatch={toggleWatch} watchEvents={watchEvents} /></div>}
                   {mobilePanel === 'intel' && <IntelFeed language={language} data={data} onLocate={(lat, lng) => { setFlyToLocation({ lat, lng, ts: Date.now() }); setMobilePanel(null); }} />}
                   {mobilePanel === 'search' && (
                     <div className="space-y-2">
@@ -1906,7 +1940,7 @@ export default function Dashboard() {
         />
       )}
 
-      {showDrawing && (
+      {showDrawing && !isMobile && (
         <div className="absolute right-12 top-1/2 -translate-y-1/2 z-[400] w-80 pointer-events-auto">
           <DrawingToolbar
             drawMode={drawMode}

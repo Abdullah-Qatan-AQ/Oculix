@@ -2874,3 +2874,70 @@ body.theme-aurora::before, body.theme-ember::before { content: ''; position: fix
 .oculix-share-investigation { display: grid !important; place-items: center; width: 2rem; padding: .35rem !important; color: var(--cyan-primary) !important; }
 .oculix-analyst-share-message { color: var(--cyan-primary) !important; }
 @media (max-width: 640px) { .oculix-timeline-events { max-height: 11rem; } .oculix-timeline-events strong { font-size: .6rem; } }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE COMMAND DECK — one surface at a time
+   ═══════════════════════════════════════════════════════════════ */
+.mobile-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 390;
+  border: 0;
+  background: rgba(1, 8, 13, .56);
+  backdrop-filter: blur(3px) saturate(80%);
+  -webkit-backdrop-filter: blur(3px) saturate(80%);
+}
+.mobile-drawer {
+  bottom: calc(62px + env(safe-area-inset-bottom, 0px)) !important;
+  left: max(8px, env(safe-area-inset-left, 0px)) !important;
+  right: max(8px, env(safe-area-inset-right, 0px)) !important;
+  width: auto !important;
+  max-height: min(74dvh, 720px) !important;
+  border: 1px solid color-mix(in srgb, var(--cyan-primary) 30%, transparent);
+  border-radius: 20px 20px 14px 14px !important;
+  box-shadow: 0 24px 80px rgba(0,0,0,.55), 0 0 34px color-mix(in srgb, var(--cyan-primary) 8%, transparent);
+  overscroll-behavior: contain;
+}
+.mobile-drawer > div:last-child { min-height: 0; }
+.mobile-drawer .mobile-drawer-handle { width: 42px; height: 4px; margin: 9px auto 7px; background: color-mix(in srgb, var(--cyan-primary) 48%, transparent); }
+.mobile-drawer > div > div:first-child { min-height: 34px; }
+.mobile-drawer > div > div:first-child > span { font-family: var(--font-display), var(--font-hud), sans-serif; font-size: 13px; font-weight: 700; letter-spacing: .01em; }
+.mobile-drawer > div > div:first-child button { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; }
+.mobile-surface-intro { margin: 0 0 12px; padding: 10px 11px; color: var(--text-secondary); background: color-mix(in srgb, var(--bg-void) 55%, transparent); border: 1px solid var(--border-secondary); border-radius: 12px; font-size: 11px; line-height: 1.7; }
+.mobile-more-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.mobile-more-btn { min-height: 66px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; padding: 10px 11px; color: var(--text-primary); text-align: start; background: linear-gradient(140deg, rgba(var(--cyan-rgb), .11), rgba(255,255,255,.025)); border: 1px solid var(--border-secondary); border-radius: 13px; font-size: 11px; font-weight: 700; transition: border-color .16s ease, transform .16s ease, background .16s ease; }
+.mobile-more-btn svg { color: var(--cyan-primary); }
+.mobile-more-btn small { grid-column: 2 / 4; margin-top: -5px; color: var(--text-muted); font-size: 9px; font-weight: 500; }
+.mobile-more-btn:active { transform: scale(.98); background: rgba(var(--cyan-rgb), .16); }
+.mobile-drawing-surface { min-height: 0; }
+.mobile-drawing-surface > * { width: 100% !important; max-height: none !important; }
+.mobile-drawer .oculix-watchlist-panel, .mobile-drawer .oculix-source-health-panel { position: static; width: 100%; max-height: none; padding: 0; border: 0; box-shadow: none; background: transparent; }
+
+@media (max-width: 768px) {
+  .mobile-nav { z-index: 500; padding-left: max(4px, env(safe-area-inset-left, 0px)); padding-right: max(4px, env(safe-area-inset-right, 0px)); }
+  .mobile-nav-inner { min-height: 64px; padding: 6px 4px calc(5px + env(safe-area-inset-bottom, 0px)); gap: 3px; border: 1px solid color-mix(in srgb, var(--cyan-primary) 22%, transparent); }
+  .mobile-nav-btn { min-height: 50px; padding: 7px 4px; gap: 4px; border-radius: 11px; font-size: 9px; letter-spacing: 0; font-weight: 700; text-transform: none; }
+  .mobile-nav-btn svg { width: 20px; height: 20px; }
+  .mobile-nav-btn.active { color: var(--cyan-primary); background: rgba(var(--cyan-rgb), .13); box-shadow: inset 0 0 0 1px rgba(var(--cyan-rgb), .18); }
+  .mobile-drawer .oculix-source-health-panel, .mobile-drawer .oculix-analyst-panel { overflow: visible; }
+}
+@media (max-width: 390px) {
+  .mobile-more-grid { gap: 6px; }
+  .mobile-more-btn { min-height: 60px; padding: 8px; font-size: 10px; }
+  .mobile-nav-btn { font-size: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobile-drawer-scrim, .mobile-drawer, .mobile-more-btn { transition: none !important; }
+}
+
+
+@media (max-width: 768px) {
+  .oculix-mobile-top-actions { display: none !important; }
+  .oculix-mode-bar { top: 3.55rem; width: calc(100vw - 1rem); padding: .38rem .48rem; gap: .32rem; }
+  .oculix-mode-bar-heading { min-height: 22px; font-size: .62rem; }
+  .oculix-mode-options { margin-inline: -.1rem; padding: .08rem .1rem .18rem; overscroll-behavior-inline: contain; }
+  .oculix-mode-options button { min-height: 34px; padding: .42rem .58rem; font-size: .58rem; }
+  .oculix-time-control { gap: .35rem; }
+  .oculix-time-control input { min-height: 24px; }
+}

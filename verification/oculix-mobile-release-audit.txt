@@ -1,0 +1,9 @@
+=== MOBILE RELEASE AUDIT ===
+src/components missing=0
+src/app/api missing=0
+src/lib missing=0
+legacy_brand_matches_excluding_LICENSE=
+components=36
+api_routes=69
+tests=      Tests  383 passed | 6 skipped (389)
+build=passed (final mobile build exit code 0)
