@@ -67,9 +67,9 @@ const TABS: ToolDef[] = [
   { id: 'crypto', label: 'CHAIN INTEL', icon: Bitcoin, placeholder: 'BTC, ETH or SOL wallet address', color: '#F7931A', group: 'chain', blurb: 'Wallet forensics and daily brief' },
 ];
 
-interface OsintPanelProps { isOpen?: boolean; onClose?: () => void; isMobile?: boolean; language?: 'ar' | 'en'; onSweepVisualize?: (data: any) => void; onScanGeolocate?: (target: string, data: any) => void; }
+interface OsintPanelProps { isOpen?: boolean; onClose?: () => void; isMobile?: boolean; language?: 'ar' | 'en'; initialQuery?: string; onSweepVisualize?: (data: any) => void; onScanGeolocate?: (target: string, data: any) => void; }
 
-function OsintPanelInner({ isMobile, language = 'en', onSweepVisualize, onScanGeolocate }: OsintPanelProps) {
+function OsintPanelInner({ isMobile, language = 'en', initialQuery = '', onSweepVisualize, onScanGeolocate }: OsintPanelProps) {
   const isArabic = language === 'ar';
   const groupLabels: Record<GroupId, string> = isArabic ? { network: 'الشبكات والمضيف', domain: 'النطاق والويب', identity: 'الهوية', threat: 'التهديد والتعرّض', chain: 'سلسلة الكتل' } : { network: 'NETWORK & HOST', domain: 'DOMAIN & WEB', identity: 'IDENTITY', threat: 'THREAT & EXPOSURE', chain: 'BLOCKCHAIN' };
   const toolLabels: Record<string, string> = isArabic ? { 'PORT SCAN': 'فحص المنافذ', 'VULN SWEEP': 'فحص الثغرات', 'SHODAN IOT': 'أجهزة Shodan', 'BGP ROUTE': 'مسار BGP', 'MAC ADDR': 'عنوان MAC', 'IP SWEEP': 'مسح IP', DNS: 'سجلات DNS', WHOIS: 'ملكية WHOIS', CERTS: 'الشهادات', 'SSL/TLS': 'صحة SSL/TLS', SUBDOMAINS: 'النطاقات الفرعية', HEADERS: 'رؤوس الأمان', 'TECH DETECT': 'كشف التقنية', USERNAME: 'بحث اسم المستخدم', 'GITHUB RECON': 'استطلاع GitHub', 'PHONE INTEL': 'معلومات الهاتف', THREATS: 'التهديدات', 'DATA LEAKS': 'تسريبات البيانات', INFOSTEALER: 'برمجيات السرقة', 'CHAIN INTEL': 'استخبارات السلسلة' } : {};
@@ -103,6 +103,16 @@ function OsintPanelInner({ isMobile, language = 'en', onSweepVisualize, onScanGe
 
   // Escape leaves the expanded view — it covers the map, so there must be a
   // way out that isn't hunting for the button.
+  useEffect(() => {
+    if (!initialQuery.trim()) return;
+    const value = initialQuery.trim();
+    const lower = value.toLowerCase();
+    setQuery(value);
+    setActiveTab(lower.startsWith('cve-') ? 'vuln' : lower.includes('.') && !/^\d{1,3}(?:\.\d{1,3}){3}$/.test(lower) ? 'dns' : 'scanner');
+    setResults(null);
+    setError('');
+  }, [initialQuery]);
+
   useEffect(() => {
     if (!isFullScreen) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setIsFullScreen(false); };

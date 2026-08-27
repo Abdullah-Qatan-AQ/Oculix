@@ -1,3 +1,5 @@
+import { classifyFreshness, confidenceFrom, type FreshnessState } from './freshness';
+
 export type SourceStatus = 'live' | 'stale' | 'degraded' | 'offline' | 'unknown';
 
 export interface SourceHealth {
@@ -11,10 +13,12 @@ export interface SourceHealth {
   cacheHits: number;
   items: number | null;
   reliability: number;
+  freshness: FreshnessState;
+  confidence: number | null;
   lastError?: string;
 }
 
-type InternalHealth = Omit<SourceHealth, 'status' | 'ageSeconds' | 'reliability'> & {
+type InternalHealth = Omit<SourceHealth, 'status' | 'ageSeconds' | 'reliability' | 'freshness' | 'confidence'> & {
   status: SourceStatus;
   lastUpdatedMs: number | null;
   successCount: number;
@@ -81,6 +85,9 @@ function toPublic(entry: InternalHealth): SourceHealth {
   if (ageSeconds !== null && ageSeconds > 60 * 60) status = 'stale';
   else if (ageSeconds !== null && ageSeconds > 10 * 60 && status === 'live') status = 'degraded';
   const totalOutcomes = entry.successCount + entry.errors;
+  const computedFreshness = classifyFreshness(ageSeconds);
+  const freshness: FreshnessState = status === 'offline' || status === 'stale' ? 'STALE' : status === 'degraded' ? 'DELAYED' : computedFreshness;
+  const confidence = confidenceFrom(ageSeconds, totalOutcomes === 0 ? null : entry.successCount / totalOutcomes);
   return {
     source: entry.source,
     status,
@@ -92,6 +99,8 @@ function toPublic(entry: InternalHealth): SourceHealth {
     cacheHits: entry.cacheHits,
     items: entry.items,
     reliability: totalOutcomes === 0 ? 0 : Number((entry.successCount / totalOutcomes).toFixed(3)),
+    freshness,
+    confidence,
     ...(entry.lastError ? { lastError: entry.lastError } : {}),
   };
 }

@@ -24,8 +24,8 @@ import ArcGISPanel from '@/components/ArcGISPanel';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import SettingsPanel from '@/components/SettingsPanel';
 import SourceHealthPanel from '@/components/SourceHealthPanel';
-import AnalystWorkspace from '@/components/AnalystWorkspace';
-import CommandPalette, { type CommandId } from '@/components/CommandPalette';
+import AnalystWorkspace, { type AnalystEvent } from '@/components/AnalystWorkspace';
+import CommandPalette, { type CommandId, type SearchItem } from '@/components/CommandPalette';
 import IntelligenceModeBar, { type IntelligenceMode } from '@/components/IntelligenceModeBar';
 import WatchlistPanel from '@/components/WatchlistPanel';
 import LocaleSurface from '@/components/LocaleSurface';
@@ -246,6 +246,7 @@ export default function Dashboard() {
   const [showSourceHealth, setShowSourceHealth] = useState(false);
   const [showAnalyst, setShowAnalyst] = useState(false);
   const [showWatchlists, setShowWatchlists] = useState(false);
+  const [reconQuery, setReconQuery] = useState('');
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [visualOptions, setVisualOptions] = useState({ reducedMotion: false, grid: true, scanlines: true, ticker: true, ambient: true });
@@ -606,7 +607,7 @@ export default function Dashboard() {
     const eqUrl = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson';
     const eqTransform = (data: any) => ({ earthquakes: (data.features || []).map((f: any) => ({ id: f.id, lat: f.geometry?.coordinates?.[1] || 0, lng: f.geometry?.coordinates?.[0] || 0, depth: f.geometry?.coordinates?.[2] || 0, magnitude: f.properties?.mag, place: f.properties?.place, time: f.properties?.time, url: f.properties?.url, tsunami: f.properties?.tsunami, type: f.properties?.type, felt: f.properties?.felt, alert: f.properties?.alert })) });
     fetchEndpoint(eqUrl, eqTransform);
-    fetchEndpoint('/api/news');
+    fetchEndpoint('/api/news', d => ({ news: d.news || [], newsMeta: d.metadata || null }));
     /* A cold start can time out every upstream quote and return an all-empty
        feed. Waiting a full poll interval to find out leaves the panel blank for
        15 minutes, so retry a few times up-front until instruments actually land. */
@@ -878,7 +879,34 @@ export default function Dashboard() {
     fires: data.fires?.length || 0,
     satellites: data.satellites?.length || 0,
     news: data.news?.length || 0,
+    maxEarthquakeMagnitude: Math.max(0, ...(data.earthquakes || []).map((item: any) => Number(item.magnitude) || 0)),
   }), [data.earthquakes, data.fires, data.satellites, data.news, totalFlights]);
+  const unifiedSearchItems = useMemo<SearchItem[]>(() => {
+    const items: SearchItem[] = [];
+    (data.commercial_flights || []).slice(0, 80).forEach((item: any, index: number) => items.push({ id: `air-${item.icao24 || index}`, label: item.callsign || item.icao24 || `Aircraft ${index + 1}`, description: `${item.origin_country || 'Unknown'} · aircraft`, kind: 'aircraft', lat: item.lat, lng: item.lng }));
+    (data.maritime_ships || []).slice(0, 80).forEach((item: any, index: number) => items.push({ id: `ship-${item.mmsi || index}`, label: item.name || item.mmsi || `Vessel ${index + 1}`, description: `${item.destination || 'AIS'} · vessel`, kind: 'ship', lat: item.lat, lng: item.lng }));
+    (data.news || []).slice(0, 40).forEach((item: any, index: number) => items.push({ id: `news-${item.id || index}`, label: item.title || `News ${index + 1}`, description: item.source || 'News feed', kind: 'news', lat: item.coords?.[0], lng: item.coords?.[1] }));
+    (data.earthquakes || []).slice(0, 40).forEach((item: any, index: number) => items.push({ id: `quake-${item.id || index}`, label: `M${item.magnitude ?? '?'} ${item.place || ''}`.trim(), description: 'USGS earthquake event', kind: 'event', lat: item.lat, lng: item.lng }));
+    return items;
+  }, [data.commercial_flights, data.maritime_ships, data.news, data.earthquakes]);
+
+  const analystEvents = useMemo<AnalystEvent[]>(() => {
+    const events: AnalystEvent[] = [];
+    (data.news || []).slice(0, 20).forEach((item: any, index: number) => events.push({ id: `news-${item.id || index}`, kind: 'news', title: item.title || 'News event', source: item.source || 'News feed', timestamp: item.published || new Date().toISOString(), lat: item.coords?.[0], lng: item.coords?.[1], confidence: typeof item.confidence === 'number' ? item.confidence : null }));
+    (data.earthquakes || []).slice(0, 20).forEach((item: any, index: number) => events.push({ id: `quake-${item.id || index}`, kind: 'quake', title: `M${item.magnitude ?? '?'} ${item.place || ''}`.trim(), source: 'USGS', timestamp: item.time ? new Date(item.time).toISOString() : new Date().toISOString(), lat: item.lat, lng: item.lng, confidence: null }));
+    (data.fires || []).slice(0, 20).forEach((item: any, index: number) => events.push({ id: `fire-${item.id || index}`, kind: 'fire', title: item.title || item.name || 'Fire hotspot', source: item.source || 'NASA FIRMS', timestamp: item.timestamp || item.time || new Date().toISOString(), lat: item.lat, lng: item.lng, confidence: typeof item.confidence === 'number' ? item.confidence : null }));
+    return events.sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp)).slice(0, 40);
+  }, [data.news, data.earthquakes, data.fires]);
+  const openReconWithQuery = useCallback((query: string) => {
+    setReconQuery(query);
+    setShowMarkets(false); setShowAlerts(false); setShowSpaceCam(false); setShowDrawing(false); setShowDesktopSearch(false); setShowDirections(false); setShowArcGIS(false); setShowRemote(false); setShowWatchlists(false); setShowIntel(true); setMobilePanel('recon');
+  }, []);
+  const handleUnifiedSearch = useCallback((item: SearchItem) => {
+    if (Number.isFinite(item.lat) && Number.isFinite(item.lng)) setFlyToLocation({ lat: item.lat!, lng: item.lng!, ts: Date.now() });
+    if (item.kind === 'ip' || item.kind === 'domain' || item.kind === 'cve') openReconWithQuery(item.label);
+  }, [openReconWithQuery]);
+  const handleUnifiedQuery = useCallback((query: string) => openReconWithQuery(query), [openReconWithQuery]);
+
   const runCommand = useCallback((command: CommandId) => {
     const closePanels = () => { setShowIntel(false); setShowMarkets(false); setShowAlerts(false); setShowSpaceCam(false); setShowDrawing(false); setShowDesktopSearch(false); setShowDirections(false); setShowArcGIS(false); setShowRemote(false); setShowWatchlists(false); };
     switch (command) {
@@ -925,9 +953,9 @@ export default function Dashboard() {
         onResetPanels={resetPanelVisibility}
       />
       <SourceHealthPanel open={showSourceHealth} onClose={() => setShowSourceHealth(false)} language={language} />
-      <AnalystWorkspace open={showAnalyst} onClose={() => setShowAnalyst(false)} language={language} metrics={analystMetrics} />
+      <AnalystWorkspace open={showAnalyst} onClose={() => setShowAnalyst(false)} language={language} metrics={analystMetrics} events={analystEvents} mapContext={{ latitude: mapView.latitude, longitude: mapCenter?.lng ?? 0, zoom: mapView.zoom }} onLocate={(lat, lng) => setFlyToLocation({ lat, lng, ts: Date.now() })} />
       <WatchlistPanel open={showWatchlists} onClose={() => setShowWatchlists(false)} language={language} metrics={analystMetrics} />
-      <CommandPalette open={showCommandPalette} onClose={() => setShowCommandPalette(false)} language={language} onRun={runCommand} />
+      <CommandPalette open={showCommandPalette} onClose={() => setShowCommandPalette(false)} language={language} onRun={runCommand} searchItems={unifiedSearchItems} onSearch={handleUnifiedSearch} onSearchQuery={handleUnifiedQuery} />
 
       {/* ── SPLASH ── */}
       <AnimatePresence>
@@ -1409,7 +1437,7 @@ export default function Dashboard() {
           <AnimatePresence>
             {showIntel && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="absolute right-12 top-1/2 -translate-y-1/2 w-80">
-                <OsintPanel language={language} onSweepVisualize={setSweepData} onScanGeolocate={(target, data) => {
+                <OsintPanel language={language} initialQuery={reconQuery} onSweepVisualize={setSweepData} onScanGeolocate={(target, data) => {
                   setScanTargets(prev => {
                     const existing = prev.filter(t => t.id !== target);
                     return [{ id: target, timestamp: Date.now(), ...data }, ...existing].slice(0, 10);
@@ -1455,7 +1483,7 @@ export default function Dashboard() {
           <AnimatePresence>
             {showMarkets && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="absolute right-12 top-1/2 -translate-y-1/2 w-80">
-                <MarketsPanel data={data} spaceWeather={spaceWeather} />
+                <MarketsPanel language={language} data={data} spaceWeather={spaceWeather} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -1475,7 +1503,7 @@ export default function Dashboard() {
           <AnimatePresence>
             {showAlerts && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="absolute right-12 top-1/2 -translate-y-1/2 w-80">
-                <LiveAlerts data={data} onLocate={(lat, lng) => setFlyToLocation({ lat, lng, ts: Date.now() })} onWatchFeed={(url, name) => { setLiveFeedUrl(url); setLiveFeedName(name); }} />
+                <LiveAlerts language={language} data={data} onLocate={(lat, lng) => setFlyToLocation({ lat, lng, ts: Date.now() })} onWatchFeed={(url, name) => { setLiveFeedUrl(url); setLiveFeedName(name); }} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -1772,7 +1800,7 @@ export default function Dashboard() {
                       </div>
                     </>
                   )}
-                  {mobilePanel === 'markets' && <MarketsPanel data={data} spaceWeather={spaceWeather} />}
+                  {mobilePanel === 'markets' && <MarketsPanel language={language} data={data} spaceWeather={spaceWeather} />}
                   {mobilePanel === 'intel' && <IntelFeed language={language} data={data} onLocate={(lat, lng) => { setFlyToLocation({ lat, lng, ts: Date.now() }); setMobilePanel(null); }} />}
                   {mobilePanel === 'search' && (
                     <div className="space-y-2">
@@ -1782,7 +1810,7 @@ export default function Dashboard() {
                   )}
                   {mobilePanel === 'recon' && (
                     <div className="space-y-2">
-                      <OsintPanel language={language} isOpen={true} onClose={() => setMobilePanel(null)} isMobile={true} onSweepVisualize={setSweepData} />
+                      <OsintPanel language={language} initialQuery={reconQuery} isOpen={true} onClose={() => setMobilePanel(null)} isMobile={true} onSweepVisualize={setSweepData} />
                     </div>
                   )}
                   {mobilePanel === 'remote' && (

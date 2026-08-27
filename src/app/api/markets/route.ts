@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { cachedSource } from '@/lib/sourceCache';
+import { getSourceHealth } from '@/lib/sourceHealth';
 
 /**
  * OCULIX — Financial Markets & Commodities API
@@ -226,19 +227,29 @@ export async function GET(request: Request) {
   try {
     const origin = new URL(request.url).origin;
     const [quotes, scm_alerts] = await Promise.all([getQuotes(), fetchScmAlerts(origin)]);
+    const health = getSourceHealth('markets');
 
     return NextResponse.json({
       ...groupQuotes(quotes),
       scm_alerts,
       count: quotes.length,
       timestamp: new Date().toISOString(),
+      metadata: {
+        source: 'markets',
+        fetchedAt: health.lastUpdated,
+        ageSeconds: health.ageSeconds,
+        freshness: health.freshness,
+        confidence: health.confidence,
+        status: health.status,
+        cacheHits: health.cacheHits,
+      },
     }, {
       headers: { 'Cache-Control': 'no-store' }, // Prevent caching so alerts update real-time
     });
   } catch (error) {
     console.error('Markets fetch error:', error);
     return NextResponse.json(
-      { ...groupQuotes([]), scm_alerts: [], count: 0, error: 'Failed' },
+      { ...groupQuotes([]), scm_alerts: [], count: 0, metadata: { source: 'markets', freshness: 'STALE', confidence: null, status: 'offline' }, error: 'Failed' },
       { status: 500 },
     );
   }

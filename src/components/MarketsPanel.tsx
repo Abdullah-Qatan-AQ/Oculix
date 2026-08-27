@@ -10,6 +10,7 @@ import {
   DollarSign, ArrowUpDown, AlertTriangle,
 } from 'lucide-react';
 import AiOverview from './AiOverview';
+import { formatAge, freshnessLabel, type FreshnessState } from '@/lib/freshness';
 
 // Canvas charting has no business in the server bundle, and it only mounts
 // once a ticker is actually opened.
@@ -26,7 +27,7 @@ interface Quote {
   market_open?: boolean;
 }
 
-interface MarketsPanelProps { data: any; spaceWeather?: any; }
+interface MarketsPanelProps { data: any; spaceWeather?: any; language?: 'ar' | 'en'; }
 
 const SECTIONS = [
   { key: 'indices', label: 'INDICES', icon: LineChart },
@@ -39,6 +40,15 @@ const SECTIONS = [
 
 const GREEN = 'var(--alert-green)';
 const RED = 'var(--alert-red)';
+
+const copy = {
+  ar: { title: 'الأسواق والاستخبارات', live: 'مباشر', delayed: 'متأخر', stale: 'متقادم', unknown: 'غير معروف', sessionOpen: 'السوق مفتوح', sessionClosed: 'السوق مغلق', confidence: 'الثقة', source: 'المصدر' },
+  en: { title: 'Markets & Intel', live: 'Live', delayed: 'Delayed', stale: 'Stale', unknown: 'Unknown', sessionOpen: 'SESSION OPEN', sessionClosed: 'SESSION CLOSED', confidence: 'Confidence', source: 'Source' },
+} as const;
+
+function marketState(value: unknown): FreshnessState {
+  return value === 'LIVE' || value === 'DELAYED' || value === 'STALE' || value === 'UNKNOWN' ? value : 'UNKNOWN';
+}
 
 /** Prices span 0.9 (FX) to 100,000 (BTC) — one formatter can't serve both. */
 function formatPrice(v: number): string {
@@ -124,7 +134,8 @@ function useFeedAge(timestamp?: string): string | null {
   return `${Math.floor(mins / 60)}h ago`;
 }
 
-export default function MarketsPanel({ data, spaceWeather }: MarketsPanelProps) {
+export default function MarketsPanel({ data, spaceWeather, language = 'en' }: MarketsPanelProps) {
+  const t = copy[language];
   const [expanded, setExpanded] = useState(true);
   const [maximized, setMaximized] = useState(false);
   const [activeSection, setActiveSection] = useState('stocks');
@@ -133,7 +144,9 @@ export default function MarketsPanel({ data, spaceWeather }: MarketsPanelProps) 
   const [selected, setSelected] = useState<{ symbol: string; name: string } | null>(null);
   // Memoised so the derived lists below don't recompute on every render.
   const markets = useMemo(() => data.markets || {}, [data.markets]);
-  const age = useFeedAge(markets.timestamp);
+  const routeAge = useFeedAge(markets.timestamp);
+  const sourceAge = typeof markets.metadata?.ageSeconds === 'number' ? formatAge(markets.metadata.ageSeconds, language) : routeAge;
+  const freshness = marketState(markets.metadata?.freshness);
 
   // Ensure portal only renders on client
   const [mounted, setMounted] = useState(false);
@@ -261,7 +274,7 @@ export default function MarketsPanel({ data, spaceWeather }: MarketsPanelProps) 
     <div className="flex items-center justify-between px-2 py-1 shrink-0">
       <span className="flex items-center gap-1 text-[9px] font-mono tracking-widest text-[var(--text-muted)]">
         <span className="w-1 h-1 rounded-full" style={{ background: sessionOpen ? GREEN : 'var(--text-muted)' }} />
-        {sessionOpen ? 'SESSION OPEN' : 'SESSION CLOSED'}
+        {sessionOpen ? t.sessionOpen : t.sessionClosed}
       </span>
       <button
         onClick={() => setSortByMove(v => !v)}
@@ -323,11 +336,12 @@ export default function MarketsPanel({ data, spaceWeather }: MarketsPanelProps) 
             style={{ background: 'var(--gold-primary)', boxShadow: '0 0 8px rgba(var(--gold-rgb),0.6)' }}
           />
           <BarChart3 className="w-3.5 h-3.5 text-[var(--gold-primary)]" />
-          <span className="instrument-title">Markets &amp; Intel</span>
-          <span className="instrument-chip" style={{ color: 'var(--alert-green)' }}>Live</span>
+          <span className="instrument-title">{t.title}</span>
+          <span className={`instrument-chip instrument-chip--${freshness.toLowerCase()}`} title={`${t.source}: ${markets.metadata?.source || 'markets'}`}>{freshnessLabel(freshness, language)}</span>
         </button>
         <div className="flex items-center gap-2">
-          {age && <span className="text-[9px] font-mono text-[var(--text-muted)]">{age}</span>}
+          {sourceAge && <span className="text-[9px] font-mono text-[var(--text-muted)]" title={`${t.source}: ${markets.metadata?.source || 'markets'}`}>{sourceAge}</span>}
+          {markets.metadata?.confidence !== null && typeof markets.metadata?.confidence === 'number' && <span className="text-[9px] font-mono text-[var(--text-muted)]" title={t.confidence}>{Math.round(markets.metadata.confidence * 100)}%</span>}
           <div className="w-1.5 h-1.5 rounded-full bg-[var(--alert-green)] animate-oculix-pulse" />
           <button onClick={() => { setMaximized(!maximized); if (!expanded && !maximized) setExpanded(true); }} className="p-1.5 -m-0.5 rounded hover:text-white hover:bg-white/10 transition-colors" title={maximized ? "Restore" : "Maximize"}>
             {maximized ? <Minimize2 className="w-3.5 h-3.5 text-[var(--text-muted)]" /> : <Maximize2 className="w-3.5 h-3.5 text-[var(--text-muted)]" />}

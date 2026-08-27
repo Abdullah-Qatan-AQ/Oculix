@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Newspaper, ChevronDown, ChevronUp, ExternalLink, MapPin, Zap } from 'lucide-react';
+import { formatAge, freshnessLabel, type FreshnessState } from '@/lib/freshness';
 
 /* ═══════════════════════════════════════════════════════════════
    OCULIX — Intelligence Feed
@@ -53,6 +54,8 @@ export default function IntelFeed({ data, language = 'en', onLocate }: IntelFeed
   const [expanded, setExpanded] = useState(true);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const news = data.news || [];
+  const metadata = data.newsMeta;
+  const freshness: FreshnessState = metadata?.freshness === 'LIVE' || metadata?.freshness === 'DELAYED' || metadata?.freshness === 'STALE' || metadata?.freshness === 'UNKNOWN' ? metadata.freshness : 'UNKNOWN';
 
   return (
     <motion.div
@@ -70,6 +73,7 @@ export default function IntelFeed({ data, language = 'en', onLocate }: IntelFeed
           <Newspaper className="w-3.5 h-3.5 text-[var(--gold-primary)]" />
           <span className="hud-text text-[11px] text-[var(--text-primary)]">{t.feed}</span>
           <span className="gotham-tag gotham-tag--info" style={{ fontSize: '9px', padding: '1px 5px' }}>{news.length}</span>
+          <span className={`source-health-freshness source-health-freshness--${freshness.toLowerCase()}`}>{freshnessLabel(freshness, language)}</span>
           {news.some((n: any) => n.risk_score >= 8) && (
             <span className="gotham-tag gotham-tag--critical" style={{ fontSize: '9px', padding: '1px 4px' }}>{t.alerts}</span>
           )}
@@ -136,7 +140,8 @@ export default function IntelFeed({ data, language = 'en', onLocate }: IntelFeed
                     </h4>
                     <div className="oculix-provenance-row" dir={language === 'ar' ? 'rtl' : 'ltr'}>
                       <span>{language === 'ar' ? 'المصدر' : 'SOURCE'}: {item.source || (language === 'ar' ? 'غير معروف' : 'Unknown')}</span>
-                      <span>{language === 'ar' ? 'الثقة' : 'CONFIDENCE'}: {typeof item.confidence === 'number' ? `${Math.round(item.confidence * (item.confidence <= 1 ? 100 : 1))}%` : (language === 'ar' ? 'غير محددة' : 'UNSCORED')}</span>
+                      <span>{language === 'ar' ? 'الثقة' : 'CONFIDENCE'}: {typeof item.confidence === 'number' ? `${Math.round(item.confidence * (item.confidence <= 1 ? 100 : 1))}%` : typeof metadata?.confidence === 'number' ? `${Math.round(metadata.confidence * 100)}%` : (language === 'ar' ? 'غير محددة' : 'UNSCORED')}</span>
+                      <span>{metadata?.source || (language === 'ar' ? 'مصدر الخبر' : 'NEWS SOURCE')} · {formatAge(typeof metadata?.ageSeconds === 'number' ? metadata.ageSeconds : null, language)}</span>
                       <span>{timeAgo(item.published, language)}</span>
                     </div>
 

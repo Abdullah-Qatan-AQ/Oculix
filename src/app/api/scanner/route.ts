@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { validateHost, isRateLimited, getClientIp } from '@/lib/ssrf-guard';
 import { auditHash, recordAuditEvent } from '@/lib/auditLog';
+import { ALLOWED_SCANS, MAX_CONCURRENT_WORK, MAX_TARGET_LENGTH, isAllowedScan, isResponseWithinLimit, isTargetWithinLimit, scannerEndpoint } from '@/lib/scanner-policy';
 
 /**
  * OCULIX — Scanner Proxy (Hardened)
@@ -9,8 +10,7 @@ import { auditHash, recordAuditEvent } from '@/lib/auditLog';
 
 const SCANNER_URL = process.env.SCANNER_URL || '';
 const SCANNER_KEY = process.env.SCANNER_KEY || '';
-const MAX_TARGET_LENGTH = 253;
-const MAX_RESPONSE_BYTES = 512 * 1024;
+let activeWork = 0;
 
 // The string-based regex previously here matched only literal dotted-quad
 // IPv4, missed every IPv6 form, and never resolved hostnames — so an attacker
@@ -18,19 +18,6 @@ const MAX_RESPONSE_BYTES = 512 * 1024;
 // `target=2130706433` (decimal 127.0.0.1), or `target=::1`. Validation now
 // canonicalises the input and resolves hostnames before deciding. See
 // `src/lib/ssrf-guard.ts`.
-
-// ── ALLOWED SCAN TYPES (safe subset only) ──
-const ALLOWED_SCANS: Record<string, { endpoint: string; timeout: number }> = {
-  quick:      { endpoint: '/scan/quick',      timeout: 15000 },
-  ssl:        { endpoint: '/scan/ssl',        timeout: 10000 },
-  headers:    { endpoint: '/scan/headers',    timeout: 10000 },
-  rdns:       { endpoint: '/scan/rdns',       timeout: 8000  },
-  subdomains: { endpoint: '/scan/subdomains', timeout: 15000 },
-  tech:       { endpoint: '/scan/tech',       timeout: 15000 },
-  whois:      { endpoint: '/scan/whois',      timeout: 10000 },
-  geoloc:     { endpoint: '/scan/geoloc',     timeout: 8000  },
-  vuln:       { endpoint: '/scan/vuln',       timeout: 90000 },
-};
 
 // REMOVED from public access: deep, ports, banner, traceroute
 // These are dangerous in an unauthenticated context:
@@ -48,8 +35,9 @@ export async function GET(req: Request) {
   const scanType = searchParams.get('type') || 'quick';
 
   // 1. Check scanner is configured
-  if (!SCANNER_KEY) {
-    return NextResponse.json({ error: 'Scanner not configured', hint: 'Set SCANNER_URL and SCANNER_KEY in .env' }, { status: 503 });
+  const endpoint = scannerEndpoint(SCANNER_URL);
+  if (!SCANNER_KEY || !endpoint) {
+    return NextResponse.json({ error: 'Scanner not configured', hint: 'Set a valid HTTPS SCANNER_URL and SCANNER_KEY in the server environment.' }, { status: 503 });
   }
 
   // 2. Rate limit by client IP
@@ -67,7 +55,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Missing target parameter' }, { status: 400 });
   }
 
-  if (target.length > MAX_TARGET_LENGTH) {
+  if (!isTargetWithinLimit(target)) {
     recordAuditEvent({ event: 'recon.blocked', clientHash, scanType, targetHash: auditHash(target), outcome: 'blocked', reason: 'target too long' });
     return NextResponse.json({ error: 'Target is too long', detail: `Maximum target length is ${MAX_TARGET_LENGTH} characters.` }, { status: 400 });
   }
@@ -87,8 +75,7 @@ export async function GET(req: Request) {
   }
 
   // 5. Validate scan type (only safe scans allowed)
-  const scanConfig = ALLOWED_SCANS[scanType];
-  if (!scanConfig) {
+  if (!isAllowedScan(scanType)) {
     recordAuditEvent({ event: 'recon.blocked', clientHash, scanType, targetHash: auditHash(target), outcome: 'blocked', reason: 'scan type unavailable' });
     return NextResponse.json({
       error: 'Scan type not available',
@@ -97,16 +84,22 @@ export async function GET(req: Request) {
     }, { status: 403 });
   }
 
-  // 6. Execute scan with tight timeout
+  // 6. Execute scan with tight timeout and a process-level concurrency cap.
+  if (activeWork >= MAX_CONCURRENT_WORK) {
+    recordAuditEvent({ event: 'recon.blocked', clientHash, scanType, targetHash: auditHash(target), outcome: 'blocked', reason: 'worker capacity reached' });
+    return NextResponse.json({ error: 'Scanner busy', detail: 'Worker capacity is temporarily exhausted; retry later.' }, { status: 503 });
+  }
+  activeWork += 1;
   try {
     const params = new URLSearchParams({ key: SCANNER_KEY, target });
-    const res = await fetch(`${SCANNER_URL}${scanConfig.endpoint}?${params.toString()}`, {
+    const scanConfig = ALLOWED_SCANS[scanType];
+    const res = await fetch(`${endpoint.origin}${endpoint.pathname.replace(/\/$/, '')}${scanConfig.endpoint}?${params.toString()}`, {
       headers: { accept: 'application/json' },
       redirect: 'error',
       signal: AbortSignal.timeout(scanConfig.timeout),
     });
     const body = await res.arrayBuffer();
-    if (body.byteLength > MAX_RESPONSE_BYTES) {
+    if (!isResponseWithinLimit(body.byteLength)) {
       recordAuditEvent({ event: 'recon.failed', clientHash, scanType, targetHash: auditHash(target), durationMs: Date.now() - startedAt, outcome: 'failure', reason: 'scanner response exceeded size limit' });
       return NextResponse.json({ error: 'Scanner response too large' }, { status: 502 });
     }
@@ -119,11 +112,11 @@ export async function GET(req: Request) {
     }
     recordAuditEvent({ event: 'recon.completed', clientHash, scanType, targetHash: auditHash(target), durationMs: Date.now() - startedAt, outcome: res.ok ? 'success' : 'failure', reason: res.ok ? undefined : `scanner status ${res.status}` });
     return NextResponse.json(data, { status: res.status });
-  } catch (e: any) {
-    recordAuditEvent({ event: 'recon.failed', clientHash, scanType, targetHash: auditHash(target), durationMs: Date.now() - startedAt, outcome: 'failure', reason: e?.name === 'TimeoutError' ? 'scanner timeout' : 'scanner unreachable' });
-    return NextResponse.json({
-      error: 'Scanner unreachable',
-      detail: e.message,
-    }, { status: 502 });
+  } catch (e: unknown) {
+    const errorName = e instanceof Error ? e.name : '';
+    recordAuditEvent({ event: 'recon.failed', clientHash, scanType, targetHash: auditHash(target), durationMs: Date.now() - startedAt, outcome: 'failure', reason: errorName === 'TimeoutError' ? 'scanner timeout' : 'scanner unreachable' });
+    return NextResponse.json({ error: 'Scanner unreachable', detail: 'The isolated scanner service did not respond.' }, { status: 502 });
+  } finally {
+    activeWork = Math.max(0, activeWork - 1);
   }
 }

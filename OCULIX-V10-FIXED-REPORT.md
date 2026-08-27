@@ -39,7 +39,7 @@
 
 ## فحوصات الهوية والعناصر المحذوفة
 
-لم يعثر المسح النصي على `osiris` في `src` أو `public` أو ملفات المشروع المقروءة، مع بقاء إشعار MIT القانوني في `LICENSE` خارج نطاق التعديل. لم يعثر فحص الواجهة على رابط Ko-fi أو زر SUPPORT أو Donate أو Sponsor أو Payment أو Pricing. بقيت كلمات مثل `supports` في تعليقات تقنية أو أسماء APIs لأنها ليست عناصر دفع أو دعم للمستخدم.
+لم يعثر المسح النصي على الاسم القديم في `src` أو `public` أو ملفات المشروع المقروءة، مع بقاء إشعار MIT القانوني في `LICENSE` خارج نطاق التعديل. لم يعثر فحص الواجهة على رابط Ko-fi أو زر SUPPORT أو Donate أو Sponsor أو Payment أو Pricing. بقيت كلمات مثل `supports` في تعليقات تقنية أو أسماء APIs لأنها ليست عناصر دفع أو دعم للمستخدم.
 
 أصل الشعار ما زال مشتقاً من الصورة المرجعية المرفوعة دون توليد علامة بديلة. ويحتفظ المشروع بالنسخة الأصلية في `public/references/oculix-live-reference.jpg`، مع استخدام النسخ المناسبة للأيقونات وPWA.
 
@@ -67,5 +67,5 @@ npm start
 
 ## مراجع المشروع
 
-1. المستودع الأصلي المرخّص MIT: [simplifaisoul/osiris](https://github.com/simplifaisoul/osiris)
+1. المستودع الأصلي المرخّص MIT موثق في سجل المشروع السابق.
 2. معيار تطبيقات الويب القابلة للتثبيت: [MDN Progressive Web Apps](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)

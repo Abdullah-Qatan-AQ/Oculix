@@ -1,0 +1,9 @@
+=== BASELINE PARITY ===
+src/components missing=0
+src/app/api missing=0
+src/lib missing=0
+=== LEGACY BRAND SCAN (excluding LICENSE) ===
+=== COUNTS ===
+components=36
+api_routes=69
+lib_files=47

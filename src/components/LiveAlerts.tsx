@@ -8,12 +8,19 @@ import {
   Newspaper, Clock, Radio, Maximize2, Minimize2
 } from 'lucide-react';
 import AiOverview from './AiOverview';
+import { ageSecondsFrom, classifyFreshness, formatAge, freshnessLabel, type FreshnessState } from '@/lib/freshness';
 
 interface LiveAlertsProps {
   data: any;
+  language?: 'ar' | 'en';
   onLocate: (lat: number, lng: number) => void;
   onWatchFeed?: (url: string, name: string) => void;
 }
+
+const copy = {
+  ar: { title: 'التنبيهات المباشرة', feeds: 'بث', filters: { all: 'الكل', news: 'أخبار', quakes: 'زلازل', feeds: 'بث' }, source: 'المصدر', confidence: 'الثقة', noAlerts: 'لا توجد تنبيهات لهذا المرشح', unknown: 'غير معروف' },
+  en: { title: 'LIVE ALERTS', feeds: 'FEEDS', filters: { all: 'ALL', news: 'NEWS', quakes: 'QUAKES', feeds: 'FEEDS' }, source: 'SOURCE', confidence: 'CONFIDENCE', noAlerts: 'No alerts for this filter', unknown: 'UNKNOWN' },
+} as const;
 
 const RISK_COLORS: Record<string, string> = {
   HIGH: '#FF3D3D',
@@ -23,7 +30,8 @@ const RISK_COLORS: Record<string, string> = {
   LOW: '#00E676',
 };
 
-export default function LiveAlerts({ data, onLocate, onWatchFeed }: LiveAlertsProps) {
+export default function LiveAlerts({ data, language = 'en', onLocate, onWatchFeed }: LiveAlertsProps) {
+  const t = copy[language];
   const [expanded, setExpanded] = useState(true);
   const [maximized, setMaximized] = useState(false);
   const [filter, setFilter] = useState<'all' | 'news' | 'quakes' | 'feeds'>('all');
@@ -61,8 +69,10 @@ export default function LiveAlerts({ data, onLocate, onWatchFeed }: LiveAlertsPr
     { name: 'teleSUR EN', city: 'Caracas', country: 'VE', lat: 10.491, lng: -66.902, url: 'https://www.youtube-nocookie.com/embed/live_stream?channel=UCmuTmpLY35O3csvhyA6vrkg&autoplay=1&mute=1', category: 'mainstream', region: 'americas' },
   ];
 
-  // Build unified alert feed
-  const alerts: any[] = [];
+  // Build unified alert feed while preserving source-level provenance.
+  const alerts: Array<any & { freshness: FreshnessState; ageSeconds: number | null; confidence: number | null }> = [];
+  const newsMeta = data.newsMeta;
+  const newsFreshness = newsMeta?.freshness === 'LIVE' || newsMeta?.freshness === 'DELAYED' || newsMeta?.freshness === 'STALE' || newsMeta?.freshness === 'UNKNOWN' ? newsMeta.freshness : 'UNKNOWN';
 
   // OSINT Telegram News Feed (from /api/news)
   if (data.news) {
@@ -72,6 +82,9 @@ export default function LiveAlerts({ data, onLocate, onWatchFeed }: LiveAlertsPr
         lat: a.coords?.[0], lng: a.coords?.[1], time: a.published,
         severity: (a.risk_score ?? 1) >= 8 ? 'CRITICAL' : (a.risk_score ?? 1) >= 6 ? 'HIGH' : (a.risk_score ?? 1) >= 4 ? 'ELEVATED' : 'LOW',
         url: a.link,
+        freshness: newsFreshness,
+        ageSeconds: typeof newsMeta?.ageSeconds === 'number' ? newsMeta.ageSeconds : null,
+        confidence: typeof newsMeta?.confidence === 'number' ? newsMeta.confidence : null,
       });
     });
   }
@@ -83,6 +96,9 @@ export default function LiveAlerts({ data, onLocate, onWatchFeed }: LiveAlertsPr
         type: 'quake', title: `M${eq.magnitude} - ${eq.place}`, source: 'USGS',
         lat: eq.lat, lng: eq.lng, time: eq.time,
         severity: eq.magnitude >= 6 ? 'CRITICAL' : eq.magnitude >= 4.5 ? 'HIGH' : 'MODERATE',
+        freshness: classifyFreshness(ageSecondsFrom(eq.time ? new Date(eq.time).toISOString() : null), { maxLiveAgeSeconds: 180, staleAfterSeconds: 1800 }),
+        ageSeconds: ageSecondsFrom(eq.time ? new Date(eq.time).toISOString() : null),
+        confidence: null,
       });
     });
   }
@@ -94,6 +110,7 @@ export default function LiveAlerts({ data, onLocate, onWatchFeed }: LiveAlertsPr
       source: `${f.city}, ${f.country}`,
       lat: f.lat, lng: f.lng,
       feedUrl: f.url, severity: 'LOW', category: f.category,
+      freshness: 'LIVE', ageSeconds: 0, confidence: null,
     });
   });
 
@@ -131,9 +148,9 @@ export default function LiveAlerts({ data, onLocate, onWatchFeed }: LiveAlertsPr
       >
         <div className="flex items-center gap-2">
           <Radio className="w-3.5 h-3.5 text-[#FF4081]" />
-          <span className="hud-text text-[11px] text-[var(--text-primary)]">LIVE ALERTS</span>
+          <span className="hud-text text-[11px] text-[var(--text-primary)]">{t.title}</span>
           <span className="gotham-tag gotham-tag--high" style={{ fontSize: '9px', padding: '1px 5px' }}>{alerts.filter(a => a.type === 'news' || a.type === 'quake').length}</span>
-          <span className="gotham-tag gotham-tag--info" style={{ fontSize: '9px', padding: '1px 4px' }}>{BUILTIN_FEEDS.length} FEEDS</span>
+          <span className="gotham-tag gotham-tag--info" style={{ fontSize: '9px', padding: '1px 4px' }}>{BUILTIN_FEEDS.length} {t.feeds}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-[#FF4081] animate-oculix-pulse" />
@@ -161,7 +178,7 @@ export default function LiveAlerts({ data, onLocate, onWatchFeed }: LiveAlertsPr
                   onClick={() => setFilter(f)}
                   className={`px-3 py-1.5 rounded text-[11px] font-mono tracking-wider transition-all ${filter === f ? 'bg-[var(--cyan-primary)]/20 text-[var(--cyan-primary)] border border-[var(--cyan-primary)]/50' : 'text-[#8A8880] border border-transparent hover:text-[#E8E6E0] hover:bg-[#2A2A28]'}`}
                 >
-                  {f.toUpperCase()}
+                  {t.filters[f]}
                 </button>
               ))}
             </div>
@@ -205,7 +222,9 @@ export default function LiveAlerts({ data, onLocate, onWatchFeed }: LiveAlertsPr
                         </div>
                         <div className="flex items-center justify-between border-t border-[#2A2A28]/50 pt-1.5 mt-1.5">
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-mono text-[#8A8880] uppercase tracking-wider">{alert.source}</span>
+                            <span className="text-[10px] font-mono text-[#8A8880] uppercase tracking-wider" title={`${t.source}: ${alert.source || t.unknown}`}>{alert.source}</span>
+                            <span className={`source-health-freshness source-health-freshness--${alert.freshness.toLowerCase()}`} title={t.source}>{freshnessLabel(alert.freshness, language)}</span>
+                            <span className="text-[9px] font-mono text-[#77736c]" title={t.confidence}>{formatAge(alert.ageSeconds, language)}{alert.confidence === null ? '' : ` · ${t.confidence} ${Math.round(alert.confidence * 100)}%`}</span>
                             {alert.time && (
                               <span className="text-[10px] font-mono text-[#5C5A54] flex items-center gap-1 border-l border-[#2A2A28] pl-2">
                                 <Clock className="w-2.5 h-2.5" />
@@ -238,7 +257,7 @@ export default function LiveAlerts({ data, onLocate, onWatchFeed }: LiveAlertsPr
               </div>
               {filtered.length === 0 && (
                 <div className="text-center py-4 text-[11px] font-mono text-[var(--text-muted)]">
-                  No alerts for this filter
+                  {t.noAlerts}
                 </div>
               )}
             </div>
