@@ -1,0 +1,30 @@
+./src/app/api/osint/threats/route.ts:19:      const res = await fetch('https://otx.alienvault.com/api/v1/pulses/subscribed?limit=10&page=1', {
+./src/app/globals.css:178:   GLASS PANELS — Premium depth with micro-reflections
+./src/app/globals.css:487:   ENHANCED DESIGN SYSTEM — Premium Components & Micro-Interactions
+./src/app/globals.css:1041:   12. PREMIUM LAYER TOGGLE — Larger toggle with glow trail
+./src/app/globals.css:1043:.layer-toggle-premium {
+./src/app/globals.css:1058:.layer-toggle-premium::after {
+./src/app/globals.css:1075:.layer-toggle-premium.active {
+./src/app/globals.css:1081:.layer-toggle-premium.active::after {
+./src/app/globals.css:1090:.layer-toggle-premium.active::before {
+./src/app/globals.css:1106:.layer-toggle-premium--cyan.active {
+./src/app/globals.css:1112:.layer-toggle-premium--cyan.active::after {
+./src/app/globals.css:1258:  .layer-toggle-premium::after {
+./src/components/ArcGISPanel.tsx:29:   Premium dark-ops glassmorphism aesthetic
+./src/components/MarketChart.tsx:109:    chart.subscribeCrosshairMove((param) => {
+./src/lib/sdk/PolybolosClient.ts:6: * ║  Subscribes to OCULIX feeds + external providers (Lattice),     ║
+./src/lib/sdk/LatticeAdapter.ts:105:      // const stream = await latticeClient.subscribeToEntities(this.config.entityFilter);
+./src/lib/sherlock.ts:159:  'Patreon', 'BuyMeACoffee', 'Kick', 'VK', 'Vimeo', 'Dribbble', 'Behance', 'DeviantART',
+./package-lock.json:838:        "url": "https://eslint.org/donate"
+./package-lock.json:4647:        "url": "https://eslint.org/donate"
+./package-lock.json:7323:          "type": "patreon",
+./package-lock.json:7324:          "url": "https://www.patreon.com/feross"
+./package-lock.json:7596:          "type": "patreon",
+./package-lock.json:7597:          "url": "https://www.patreon.com/feross"
+./OCULIX-V10-FIXED-REPORT.md:13:| الدعم والدفع | إزالة رابط Ko-fi وشارة SUPPORT من سطح المكتب والهاتف، وإزالة مشغل Token/Chart المجاور لهما من الرأس حتى لا يظهر المحتوى الخارجي المرتبط بالهوية القديمة. لم تُحذف أدوات الخريطة أو Markets أو Space أو Recon أو Alerts أو Draw أو Route أو Search أو ArcGIS أو Remote. |
+./OCULIX-V10-FIXED-REPORT.md:42:لم يعثر المسح النصي على `osiris` في `src` أو `public` أو ملفات المشروع المقروءة، مع بقاء إشعار MIT القانوني في `LICENSE` خارج نطاق التعديل. لم يعثر فحص الواجهة على رابط Ko-fi أو زر SUPPORT أو Donate أو Sponsor أو Payment أو Pricing. بقيت كلمات مثل `supports` في تعليقات تقنية أو أسماء APIs لأنها ليست عناصر دفع أو دعم للمستخدم.
+./verification/final-audit.txt:10:src/app/api/osint/threats/route.ts:19:      const res = await fetch('https://otx.alienvault.com/api/v1/pulses/subscribed?limit=10&page=1', {
+./verification/final-audit.txt:18:src/components/MarketChart.tsx:109:    chart.subscribeCrosshairMove((param) => {
+./verification/final-audit.txt:24:src/lib/sdk/PolybolosClient.ts:6: * ║  Subscribes to OCULIX feeds + external providers (Lattice),     ║
+./verification/final-audit.txt:25:src/lib/sdk/LatticeAdapter.ts:105:      // const stream = await latticeClient.subscribeToEntities(this.config.entityFilter);
+./verification/final-audit.txt:27:src/lib/sherlock.ts:159:  'Patreon', 'BuyMeACoffee', 'Kick', 'VK', 'Vimeo', 'Dribbble', 'Behance', 'DeviantART',

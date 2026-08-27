@@ -23,6 +23,10 @@ import WorldRemote from '@/components/WorldRemote';
 import ArcGISPanel from '@/components/ArcGISPanel';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import SettingsPanel from '@/components/SettingsPanel';
+import SourceHealthPanel from '@/components/SourceHealthPanel';
+import AnalystWorkspace from '@/components/AnalystWorkspace';
+import CommandPalette, { type CommandId } from '@/components/CommandPalette';
+import IntelligenceModeBar, { type IntelligenceMode } from '@/components/IntelligenceModeBar';
 import LocaleSurface from '@/components/LocaleSurface';
 import OculixSoundscape from '@/components/OculixSoundscape';
 const OculixMap = dynamic(() => import('@/components/OculixMap'), { ssr: false });
@@ -226,9 +230,11 @@ export default function Dashboard() {
   const [arcgisLayers, setArcgisLayers] = useState<Array<{ id: string; title: string; url: string; geojson: any; color: string; visible: boolean; opacity: number }>>([]);
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number; bounds?: { west: number; south: number; east: number; north: number } } | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [mobilePanel, setMobilePanel] = useState<'layers'|'markets'|'intel'|'search'|'recon'|'remote'|null>(null);
+  const [mobilePanel, setMobilePanel] = useState<'layers'|'markets'|'intel'|'search'|'recon'|'remote'|'route'|null>(null);
   const [mapProjection, setMapProjection] = useState<'globe'|'mercator'>('globe');
   const [mapStyle, setMapStyle] = useState<'dark'|'satellite'>('dark');
+  const [intelligenceMode, setIntelligenceMode] = useState<IntelligenceMode>('intelligence');
+  const [timeCursor, setTimeCursor] = useState(() => Date.now());
   const [sweepData, setSweepData] = useState<any>(null);
   const [scanTargets, setScanTargets] = useState<any[]>([]);
   const [drawnPolygons, setDrawnPolygons] = useState<DrawnShape[]>([]);
@@ -236,6 +242,9 @@ export default function Dashboard() {
   const [oculixTheme, setOculixTheme] = useState<OculixTheme>('core');
   const [language, setLanguage] = useState<'ar'|'en'>('ar');
   const [showSettings, setShowSettings] = useState(false);
+  const [showSourceHealth, setShowSourceHealth] = useState(false);
+  const [showAnalyst, setShowAnalyst] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [visualOptions, setVisualOptions] = useState({ reducedMotion: false, grid: true, scanlines: true, ticker: true, ambient: true });
   const [pwaInstalled, setPwaInstalled] = useState(false);
@@ -261,6 +270,16 @@ export default function Dashboard() {
     return () => window.removeEventListener('appinstalled', handleInstalled);
   }, []);
 
+  useEffect(() => {
+    const onCommandKey = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setShowCommandPalette(open => !open);
+      }
+    };
+    window.addEventListener('keydown', onCommandKey);
+    return () => window.removeEventListener('keydown', onCommandKey);
+  }, []);
   useEffect(() => {
     document.body.classList.remove('theme-core', 'theme-ghost', 'theme-aurora', 'theme-ember');
     document.body.classList.add(`theme-${oculixTheme}`);
@@ -851,6 +870,33 @@ export default function Dashboard() {
   const totalFlights = useMemo(() => (
     (data.commercial_flights?.length||0)+(data.private_flights?.length||0)+(data.private_jets?.length||0)+(data.military_flights?.length||0)
   ), [data.commercial_flights, data.private_flights, data.private_jets, data.military_flights]);
+  const analystMetrics = useMemo(() => ({
+    flights: totalFlights,
+    earthquakes: data.earthquakes?.length || 0,
+    fires: data.fires?.length || 0,
+    satellites: data.satellites?.length || 0,
+    news: data.news?.length || 0,
+  }), [data.earthquakes, data.fires, data.satellites, data.news, totalFlights]);
+  const runCommand = useCallback((command: CommandId) => {
+    const closePanels = () => { setShowIntel(false); setShowMarkets(false); setShowAlerts(false); setShowSpaceCam(false); setShowDrawing(false); setShowDesktopSearch(false); setShowDirections(false); setShowArcGIS(false); setShowRemote(false); };
+    switch (command) {
+      case 'layers': setShowLayers(true); setMobilePanel('layers'); break;
+      case 'search': closePanels(); setShowDesktopSearch(true); setMobilePanel('search'); break;
+      case 'markets': closePanels(); setShowMarkets(true); setMobilePanel('markets'); break;
+      case 'intel': case 'recon': closePanels(); setShowIntel(true); setMobilePanel('recon'); break;
+      case 'route': closePanels(); setShowDirections(true); setMobilePanel('route'); break;
+      case 'space': closePanels(); setShowSpaceCam(true); break;
+      case 'alerts': closePanels(); setShowAlerts(true); break;
+      case 'draw': closePanels(); setShowDrawing(true); break;
+      case 'arcgis': closePanels(); setShowArcGIS(true); break;
+      case 'remote': closePanels(); setShowRemote(true); break;
+      case 'settings': setShowSettings(true); break;
+      case 'health': setShowSourceHealth(true); break;
+      case 'analyst': setShowAnalyst(true); break;
+      case 'globe': setMapProjection('globe'); break;
+      case 'map': setMapProjection('mercator'); break;
+    }
+  }, []);
 
 
   return (
@@ -875,6 +921,9 @@ export default function Dashboard() {
         setPanelVisibility={setPanelVisibility}
         onResetPanels={resetPanelVisibility}
       />
+      <SourceHealthPanel open={showSourceHealth} onClose={() => setShowSourceHealth(false)} language={language} />
+      <AnalystWorkspace open={showAnalyst} onClose={() => setShowAnalyst(false)} language={language} metrics={analystMetrics} />
+      <CommandPalette open={showCommandPalette} onClose={() => setShowCommandPalette(false)} language={language} onRun={runCommand} />
 
       {/* ── SPLASH ── */}
       <AnimatePresence>
@@ -1108,6 +1157,7 @@ export default function Dashboard() {
           aircraftAirports={aircraftAirports}
         />
       </ErrorBoundary>
+      <IntelligenceModeBar language={language} mode={intelligenceMode} onModeChange={setIntelligenceMode} timeCursor={timeCursor} onTimeChange={setTimeCursor} />
 
       {/* ── DIRECTIONS — opens beside the right-hand tool rail ── */}
       <div
@@ -1306,8 +1356,17 @@ export default function Dashboard() {
         
         <button type="button" onClick={() => setShowSettings(true)} className="pointer-events-auto glass-panel px-2.5 py-1.5 flex items-center gap-1.5 text-[9px] font-mono tracking-widest hover:opacity-80 transition-opacity border-[var(--cyan-primary)]/30 bg-[var(--cyan-primary)]/10" title="Settings" aria-label="Settings">
           <Settings2 className="w-3 h-3 text-[var(--cyan-primary)]" />
-          <span className="text-[var(--cyan-primary)] font-bold hidden sm:inline">SETTINGS</span>
+          <span className="hidden sm:inline">SETTINGS</span>
         </button>
+        <button type="button" onClick={() => setShowSourceHealth(true)} className="pointer-events-auto glass-panel px-2.5 py-1.5 flex items-center gap-1.5 text-[9px] font-mono tracking-widest hover:opacity-80 transition-opacity border-emerald-400/30 bg-emerald-400/10" title="Source Health" aria-label="Source Health">
+          <Activity className="w-3 h-3 text-emerald-300" />
+          <span className="hidden sm:inline">HEALTH</span>
+        </button>
+        <button type="button" onClick={() => setShowAnalyst(true)} className="pointer-events-auto glass-panel px-2.5 py-1.5 flex items-center gap-1.5 text-[9px] font-mono tracking-widest hover:opacity-80 transition-opacity border-violet-400/30 bg-violet-400/10" title="Analyst Mode" aria-label="Analyst Mode">
+          <Crosshair className="w-3 h-3 text-violet-300" />
+          <span className="hidden sm:inline">ANALYST</span>
+        </button>
+        <button type="button" onClick={() => setShowCommandPalette(true)} className="pointer-events-auto glass-panel px-2 py-1.5 text-[9px] font-mono tracking-widest text-white/70 hover:text-white transition-colors" title="Command palette" aria-label="Command palette">⌘K</button>
 
       </motion.div>
 
@@ -1316,6 +1375,9 @@ export default function Dashboard() {
       {isMobile && !showDirections && !navSession && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.5 }} className="absolute top-3 right-3 z-[200] pointer-events-auto flex items-center gap-2">
           <button type="button" onClick={() => setShowSettings(true)} className="glass-panel p-1.5 border border-[var(--cyan-primary)]/30 bg-[var(--cyan-primary)]/10" title="Settings" aria-label="Settings"><Settings2 className="w-3.5 h-3.5 text-[var(--cyan-primary)]" /></button>
+          <button type="button" onClick={() => setShowSourceHealth(true)} className="glass-panel p-1.5 border border-emerald-400/30 bg-emerald-400/10" title="Source Health" aria-label="Source Health"><Activity className="w-3.5 h-3.5 text-emerald-300" /></button>
+          <button type="button" onClick={() => setShowAnalyst(true)} className="glass-panel p-1.5 border border-violet-400/30 bg-violet-400/10" title="Analyst Mode" aria-label="Analyst Mode"><Crosshair className="w-3.5 h-3.5 text-violet-300" /></button>
+          <button type="button" onClick={() => setShowCommandPalette(true)} className="glass-panel px-1.5 py-1 text-[9px] font-mono text-white/70" title="Command palette" aria-label="Command palette">⌘K</button>
 
         </motion.div>
       )}

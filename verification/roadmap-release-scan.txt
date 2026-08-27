@@ -1,0 +1,12 @@
+=== old name scan outside LICENSE and generated logs ===
+./OCULIX-V10-FIXED-REPORT.md:42:لم يعثر المسح النصي على `osiris` في `src` أو `public` أو ملفات المشروع المقروءة، مع بقاء إشعار MIT القانوني في `LICENSE` خارج نطاق التعديل. لم يعثر فحص الواجهة على رابط Ko-fi أو زر SUPPORT أو Donate أو Sponsor أو Payment أو Pricing. بقيت كلمات مثل `supports` في تعليقات تقنية أو أسماء APIs لأنها ليست عناصر دفع أو دعم للمستخدم.
+./OCULIX-V10-FIXED-REPORT.md:70:1. المستودع الأصلي المرخّص MIT: [simplifaisoul/osiris](https://github.com/simplifaisoul/osiris)
+./verification/error-findings.md:3:اللقطة الأولى تعرض لوحة مخطط عملات/Token في الهاتف، وتظهر فيها العلامة القديمة بصرياً عدة مرات: `Osiris` في اسم الأصل، `Osiris / SOL` في العنوان، وأيقونة/صورة ذات طابع العين القديم، إضافة إلى نصوص مصدر خارجي مثل DEX Screener. المطلوب هو إزالة العلامة القديمة من الطبقة المحلية مع عدم حذف وظيفة Token/Chart؛ أما أسماء المصادر الخارجية وواجهات مزودي البيانات فلا ينبغي ترجمتها أو تعديلها عشوائياً.
+
+=== product UI payment/support scan ===
+src/lib/sherlock.ts:159:  'Patreon', 'BuyMeACoffee', 'Kick', 'VK', 'Vimeo', 'Dribbble', 'Behance', 'DeviantART',
+
+=== counts ===
+components=35
+api_routes=69
+tests=371 passed, 6 skipped

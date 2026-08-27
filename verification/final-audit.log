@@ -1,0 +1,52 @@
+Oculix roadmap release audit
+Wed Aug 26 23:56:11 UTC 2026
+
+components=35
+api_routes=69
+lib_files=42
+page_lines=1929
+
+=== old name scan src/public ===
+ZERO
+
+=== product payment/support scan src/public/readme ===
+src/lib/sherlock.ts:159:  'Patreon', 'BuyMeACoffee', 'Kick', 'VK', 'Vimeo', 'Dribbble', 'Behance', 'DeviantART',
+
+=== tests ===
+ Test Files  26 passed (26)
+      Tests  371 passed | 6 skipped (377)
+
+=== build ===
+✓ Compiled successfully in 8.4s
+  Finished TypeScript in 13.5s ...
+Route (app)
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+=== targeted lint ===
+/home/ubuntu/Oculix-v9-enhanced/src/components/SourceHealthPanel.tsx
+  66:10  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/ubuntu/Oculix-v9-enhanced/src/components/SourceHealthPanel.tsx:66:10
+  64 |   useEffect(() => {
+  65 |     if (!open) return;
+> 66 |     void load();
+     |          ^^^^ Avoid calling setState() directly within an effect
+  67 |     const timer = window.setInterval(() => void load(), 30_000);
+  68 |     return () => window.clearInterval(timer);
+  69 |   }, [load, open]);  react-hooks/set-state-in-effect
+
+✖ 127 problems (110 errors, 17 warnings)
+
+
+=== changed files ===
+src/components/SourceHealthPanel.tsx
+src/components/AnalystWorkspace.tsx
+src/components/CommandPalette.tsx
+src/components/IntelligenceModeBar.tsx

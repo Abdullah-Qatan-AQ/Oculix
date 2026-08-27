@@ -12,8 +12,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createGeminiClient, rotateApiKey } from '@/lib/ai-engine';
+import { getClientIp, isRateLimited } from '@/lib/ssrf-guard';
 
 export const dynamic = 'force-dynamic';
+const MAX_BODY_BYTES = 64 * 1024;
 
 type Mode = 'alerts' | 'markets' | 'chain';
 
@@ -114,6 +116,12 @@ function digestAlerts(payload: any): Digest {
   const news: any[] = payload?.news || payload?.news_intel || [];
   const weather: any[] = payload?.weather_events || [];
   const conflicts: any[] = payload?.conflicts || payload?.conflict_zones || [];
+  const counts = payload?.counts && typeof payload.counts === 'object' ? payload.counts : {};
+  const countFacts: Array<[string, string]> = [['earthquakes', 'seismic events'], ['news', 'OSINT news items'], ['fires', 'active fire events'], ['flights', 'aircraft tracks']];
+  for (const [key, label] of countFacts) {
+    const value = Number(counts[key]);
+    if (Number.isFinite(value)) facts.push(`${value.toLocaleString()} ${label} currently tracked in the selected snapshot.`);
+  }
 
   if (Array.isArray(quakes) && quakes.length) {
     const mags = quakes
@@ -243,6 +251,10 @@ async function geminiOverview(mode: Mode, digest: Digest, keys: string[]): Promi
 /* ─────────────────────────── Handler ─────────────────────────── */
 
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request);
+  if (isRateLimited(`ai-overview:${ip}`, 10, 60_000)) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+  const contentLength = Number(request.headers.get('content-length') || 0);
+  if (contentLength > MAX_BODY_BYTES) return NextResponse.json({ error: 'Request body too large' }, { status: 413 });
   let body: { mode?: Mode; payload?: any };
   try {
     body = await request.json();

@@ -5,7 +5,6 @@
 ### Open Source Intelligence & Reconnaissance Integrated System
 
 [![Live Demo](https://img.shields.io/badge/oculixai.live-00E5FF?style=for-the-badge&logo=vercel&logoColor=white)](https://oculixlive.app)
-[![Support OCULIX](https://img.shields.io/badge/Support_Project-Patreon-FF424D?style=for-the-badge&logo=patreon&logoColor=white)](https://www.patreon.com/posts/159077425)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![MapLibre](https://img.shields.io/badge/MapLibre_GL-GPU_Rendered-396CB2?style=for-the-badge)](https://maplibre.org)
@@ -13,7 +12,7 @@
 
 **A real-time global intelligence dashboard that aggregates live flight tracking, CCTV networks, earthquake monitoring, conflict zone mapping, and 24/7 news feeds into a single GPU-accelerated interface.**
 
-[Live Demo](https://oculixai.live) · [Report Bug](https://github.com/your-github-account/oculix/issues) · [Request Feature](https://github.com/your-github-account/oculix/issues) · [Join Discord](https://discord.gg/umBykEpb98)
+[Live Demo](https://oculixai.live) · [Report Bug](https://github.com/your-github-account/oculix/issues) · [Request Feature](https://github.com/your-github-account/oculix/issues)
 
 </div>
 
@@ -220,6 +219,24 @@ AIS_API_KEY=                 # aisstream.io maritime
 
 ---
 
+## Oculix Intelligence Layer
+
+The current release adds an additive analytical layer over the original map and panels. Open the **Command Palette** with `Ctrl/Cmd + K` or the `⌘K` button to reach existing tools without replacing the navigation. **Source Health Center** reports the health of sources that have actually been used, including latency, freshness, errors, cache hits and reliability.
+
+**Analyst Workspace** can pin a local snapshot of the current counters, save investigations and notes in `localStorage`, show a timeline/correlation/evidence-chain view, run the optional AI overview on compact snapshot counters, and export a Markdown report locally. If no Gemini key is configured, the AI overview endpoint uses its deterministic heuristic fallback; it does not send the full live payload from this workspace.
+
+The RECON gateway now records bounded hash-only audit events, applies SSRF validation, scan allowlisting, target-length and response-size limits, per-scan timeouts and redirect rejection. See [SECURITY.md](SECURITY.md) before using RECON.
+
+## Verification
+
+```bash
+npm install --no-audit --no-fund
+npm test -- --run
+NODE_OPTIONS=--max-old-space-size=768 npm run build
+```
+
+The project remains usable without Redis or always-on collectors. Persistent Redis, isolated scanner workers, webhooks and external alert delivery require a deployment decision and shared infrastructure; the current application uses safe in-process fallbacks instead of silently claiming those services are active.
+
 ## License
 
 MIT — see [LICENSE](LICENSE) for details.
@@ -228,18 +245,6 @@ MIT — see [LICENSE](LICENSE) for details.
 
 <div align="center">
 
-**🛠️ SUPPORT THE OCULIX PROJECT**
-The OCULIX Global Intelligence Grid is entirely open-source, but running the backend scanners and data firehoses isn't cheap.
-
-If you want to help keep the servers alive, and support us to get access to better tools  unlock the **Special OCULIX Console**, Currently Just a Cool UI. a you can officially support the project here : 
-
-🔗 [Support OCULIX on Patreon](https://www.patreon.com/posts/159077425)
-
-*Supporters receive the `🔴 RedTeam Console` role and access to encrypted developer comms.*
-
-
 **Built by [Abdullah-Qatan](https://github.com/Abdullah-Qatan)**
-
-[Join our Discord to be a part of this movement!](https://discord.gg/umBykEpb98)
 
 </div>

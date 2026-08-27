@@ -15,6 +15,8 @@
  *                  rather than dropping the layer to zero cameras.
  */
 
+import { recordSourceCacheHit, recordSourceFailure, recordSourceRequest, recordSourceStale, recordSourceSuccess } from './sourceHealth';
+
 interface Entry<T> {
   data: T[];
   expiresAt: number;
@@ -55,26 +57,37 @@ export function cachedSource<T>(
     const now = Date.now();
     const entry = store.get(key) as Entry<T> | undefined;
 
-    if (entry && now < entry.expiresAt && entry.data.length > 0) return entry.data;
+    if (entry && now < entry.expiresAt && entry.data.length > 0) {
+      recordSourceCacheHit(key);
+      return entry.data;
+    }
     if (entry?.inflight) return entry.inflight;
 
+    const requestStartedAt = Date.now();
+    recordSourceRequest(key);
     const inflight = (async () => {
       try {
         const data = await fetcher();
+        const latencyMs = Date.now() - requestStartedAt;
         // An empty result is treated as a failed refresh: keep whatever we had.
         if (data.length === 0 && entry?.data.length) {
+          recordSourceStale(key, 'empty refresh; serving cached data');
           store.set(key, { data: entry.data, expiresAt: now + ttlMs, inflight: null });
           return entry.data;
         }
+        recordSourceSuccess(key, latencyMs, data.length);
         store.set(key, { data, expiresAt: now + ttlMs, inflight: null });
         return data;
       } catch (e) {
+        const latencyMs = Date.now() - requestStartedAt;
         if (entry?.data.length) {
+          recordSourceStale(key);
           console.warn(`[OCULIX] ${key} refresh failed — serving ${entry.data.length} cached cameras`);
           // Retry sooner than a full TTL, but don't hammer the failing upstream.
           store.set(key, { data: entry.data, expiresAt: now + 60_000, inflight: null });
           return entry.data;
         }
+        recordSourceFailure(key, latencyMs, e instanceof Error ? e.message : 'source unavailable');
         console.warn(`[OCULIX] ${key} fetch failed with no cache to fall back on:`, e);
         store.set(key, { data: [], expiresAt: now + 60_000, inflight: null });
         return [];
