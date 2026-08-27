@@ -3,8 +3,9 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { BookOpen, Check, Eye, Languages, Map, Moon, Palette, RotateCcw, Settings2, ShieldCheck, Sparkles, Volume2, VolumeX, X, Zap } from 'lucide-react';
 import type { OculixTheme } from '@/lib/theme';
+import { BACKGROUND_OPTIONS, LANGUAGE_OPTIONS, type OculixBackground, type OculixLanguage } from '@/lib/i18n';
 
-type Lang = 'ar' | 'en';
+type Lang = OculixLanguage;
 type PanelVisibility = Record<string, boolean>;
 type VisualOptions = { reducedMotion: boolean; grid: boolean; scanlines: boolean; ticker: boolean; ambient: boolean };
 
@@ -15,6 +16,8 @@ interface SettingsPanelProps {
   setLanguage: (value: Lang) => void;
   theme: OculixTheme;
   setTheme: (value: OculixTheme) => void;
+  background: OculixBackground;
+  setBackground: (value: OculixBackground) => void;
   soundEnabled: boolean;
   setSoundEnabled: (value: boolean) => void;
   visualOptions: VisualOptions;
@@ -35,6 +38,17 @@ const copy = {
     title: 'Oculix Settings', eyebrow: 'OX / CONTROL DECK', subtitle: 'Full display control — no feature is deleted', appearance: 'Appearance & identity', language: 'Interface language', arabic: 'العربية', english: 'English', theme: 'Theme', core: 'Oculix Core', ghost: 'Ghost Protocol', aurora: 'Aurora Signal', ember: 'Ember Command', audio: 'Sound feedback', enabled: 'Enabled', disabled: 'Disabled', workspace: 'Workspace', reset: 'Reset display defaults', close: 'Close', visible: 'Visible', hidden: 'Hidden', note: 'Visibility is temporary display control; every original tool and feature remains preserved.', motion: 'Motion', reduced: 'Reduced', effects: 'Visual effects', grid: 'Grid', scanlines: 'Scanlines', ticker: 'Status ticker', ambient: 'Ambient field', pwa: 'Installable app', installed: 'Installed on this device', browser: 'Running in browser', rights: 'Made by Abdullah Qatan', on: 'On', off: 'Off', guide: 'How to use the platform', guideIntro: 'A complete practical guide to the map, layers, intelligence panels and analysis tools.', guideTip: 'Start with the map, then enable only the layers you need. Every card opens over the map and can be closed without losing the current context.', guideData: 'Important: news, prices and camera sources are live external data. A provider may delay or temporarily block a feed while the local platform tools remain available.',
   },
 } as const;
+
+const themeOptions: Array<{ id: OculixTheme; ar: string; en: string }> = [
+  { id: 'core', ar: 'جوهر Oculix', en: 'Oculix Core' },
+  { id: 'ghost', ar: 'بروتوكول الشبح', en: 'Ghost Protocol' },
+  { id: 'aurora', ar: 'إشارة الشفق', en: 'Aurora Signal' },
+  { id: 'ember', ar: 'مركز الجمر', en: 'Ember Command' },
+  { id: 'oceanic', ar: 'المحيط العميق', en: 'Deep Ocean' },
+  { id: 'solar', ar: 'العاصفة الشمسية', en: 'Solar Storm' },
+  { id: 'terminal', ar: 'المحطة الخضراء', en: 'Green Terminal' },
+  { id: 'rose', ar: 'الوهج القرمزي', en: 'Crimson Rose' },
+];
 
 const panelLabels = {
   ar: { layers: 'الطبقات', markets: 'الأسواق', alerts: 'التنبيهات', space: 'بث الفضاء', scm: 'مركز الأمان', intel: 'موجز المعلومات', drawing: 'أدوات الرسم', remote: 'التحكم البعيد', arcgis: 'طبقات ArcGIS', directions: 'المسارات', search: 'البحث' },
@@ -68,11 +82,12 @@ const guide = {
   ] satisfies readonly GuideStep[],
 } as const;
 
-export default function SettingsPanel({ open, onClose, language, setLanguage, theme, setTheme, soundEnabled, setSoundEnabled, visualOptions, setVisualOptions, pwaInstalled, panelVisibility, setPanelVisibility, onResetPanels }: SettingsPanelProps) {
-  const t = copy[language];
-  const labels = panelLabels[language];
+export default function SettingsPanel({ open, onClose, language, setLanguage, theme, setTheme, background, setBackground, soundEnabled, setSoundEnabled, visualOptions, setVisualOptions, pwaInstalled, panelVisibility, setPanelVisibility, onResetPanels }: SettingsPanelProps) {
+  const legacyLanguage = language === 'ar' ? 'ar' : 'en';
+  const t = copy[legacyLanguage];
+  const labels = panelLabels[legacyLanguage];
   const panels = Object.keys(labels) as Array<keyof typeof labels>;
-  const steps = guide[language];
+  const steps = guide[legacyLanguage];
   const setVisual = (key: keyof VisualOptions, value: boolean) => setVisualOptions({ ...visualOptions, [key]: value });
   return (
     <AnimatePresence>
@@ -82,8 +97,9 @@ export default function SettingsPanel({ open, onClose, language, setLanguage, th
             <header className="oculix-settings-head"><div><span dir="ltr" className="oculix-settings-eyebrow"><Settings2 size={13} /> {t.eyebrow}</span><h2>{t.title}</h2><p>{t.subtitle}</p></div><button type="button" className="oculix-settings-close" onClick={onClose} aria-label={t.close}><X size={18} /></button></header>
 
             <section className="oculix-settings-section"><h3><Palette size={15} />{t.appearance}</h3>
-              <div className="oculix-settings-row"><span><Languages size={15} />{t.language}</span><div className="oculix-segmented"><button type="button" className={language === 'ar' ? 'is-selected' : ''} onClick={() => setLanguage('ar')}>{t.arabic}</button><button type="button" className={language === 'en' ? 'is-selected' : ''} onClick={() => setLanguage('en')}>{t.english}</button></div></div>
-              <div className="oculix-settings-row oculix-settings-theme-row"><span><Moon size={15} />{t.theme}</span><div className="oculix-theme-grid"><button type="button" className={theme === 'core' ? 'is-selected' : ''} onClick={() => setTheme('core')}>{t.core}</button><button type="button" className={theme === 'ghost' ? 'is-selected' : ''} onClick={() => setTheme('ghost')}>{t.ghost}</button><button type="button" className={theme === 'aurora' ? 'is-selected' : ''} onClick={() => setTheme('aurora')}>{t.aurora}</button><button type="button" className={theme === 'ember' ? 'is-selected' : ''} onClick={() => setTheme('ember')}>{t.ember}</button></div></div>
+              <div className="oculix-settings-row"><span><Languages size={15} />{t.language}</span><div className="oculix-language-grid">{LANGUAGE_OPTIONS.map(option => <button key={option.id} type="button" dir="ltr" className={language === option.id ? 'is-selected' : ''} onClick={() => setLanguage(option.id)} title={option.english}>{option.native}</button>)}</div></div>
+              <div className="oculix-settings-row oculix-settings-theme-row"><span><Moon size={15} />{t.theme}</span><div className="oculix-theme-grid">{themeOptions.map(option => <button key={option.id} type="button" className={theme === option.id ? 'is-selected' : ''} onClick={() => setTheme(option.id)}>{language === 'ar' ? option.ar : option.en}</button>)}</div></div>
+              <div className="oculix-settings-row oculix-settings-theme-row"><span><Palette size={15} />{language === 'ar' ? 'الخلفية' : 'Background'}</span><div className="oculix-theme-grid">{BACKGROUND_OPTIONS.map(option => <button key={option.id} type="button" className={background === option.id ? 'is-selected' : ''} onClick={() => setBackground(option.id)}>{language === 'ar' ? option.ar : option.en}</button>)}</div></div>
               <div className="oculix-settings-row"><span>{soundEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}{t.audio}</span><button type="button" className={`oculix-toggle ${soundEnabled ? 'is-on' : ''}`} onClick={() => setSoundEnabled(!soundEnabled)}><i />{soundEnabled ? t.enabled : t.disabled}</button></div>
               <div className="oculix-settings-row"><span><Zap size={15} />{t.motion}</span><button type="button" className={`oculix-toggle ${visualOptions.reducedMotion ? 'is-on' : ''}`} onClick={() => setVisual('reducedMotion', !visualOptions.reducedMotion)}><i />{visualOptions.reducedMotion ? t.reduced : t.enabled}</button></div>
               <div className="oculix-settings-row"><span><Eye size={15} />{t.effects}</span><div className="oculix-mini-options"><button type="button" className={visualOptions.grid ? 'is-selected' : ''} onClick={() => setVisual('grid', !visualOptions.grid)}>{t.grid}</button><button type="button" className={visualOptions.scanlines ? 'is-selected' : ''} onClick={() => setVisual('scanlines', !visualOptions.scanlines)}>{t.scanlines}</button><button type="button" className={visualOptions.ticker ? 'is-selected' : ''} onClick={() => setVisual('ticker', !visualOptions.ticker)}>{t.ticker}</button><button type="button" className={visualOptions.ambient ? 'is-selected' : ''} onClick={() => setVisual('ambient', !visualOptions.ambient)}>{t.ambient}</button></div></div>

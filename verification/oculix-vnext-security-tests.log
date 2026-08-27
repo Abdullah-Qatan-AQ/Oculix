@@ -1,0 +1,14 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/ubuntu/Oculix-v9-enhanced
+
+ ✓ src/lib/freshness.test.ts (5 tests) 5ms
+ ✓ src/lib/scanner-policy.test.ts (4 tests) 6ms
+ ✓ src/lib/ssrf-guard.test.ts (3 tests) 13ms
+ ✓ src/lib/sourceHealth.test.ts (4 tests) 18ms
+
+ Test Files  4 passed (4)
+      Tests  16 passed (16)
+   Start at  03:16:21
+   Duration  475ms (transform 215ms, setup 0ms, collect 304ms, tests 42ms, environment 1ms, prepare 394ms)
+

@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Layers, BarChart3, Newspaper, Search, X, Globe, MapPinned, Route, Radar, Satellite, Moon, ExternalLink, AlertTriangle, Activity, Database, Wifi, Play, Network, Crosshair, Bluetooth, Pentagon, Radio , PenLine, Settings2, MoreHorizontal, Bookmark } from 'lucide-react';
+import { Layers, BarChart3, Newspaper, Search, X, Globe, MapPinned, Route, Radar, Satellite, Moon, ExternalLink, AlertTriangle, Activity, Database, Wifi, Play, Network, Crosshair, Bluetooth, Pentagon, Radio , PenLine, Settings2, MoreHorizontal, Bookmark, FileText } from 'lucide-react';
 import IntelFeed from '@/components/IntelFeed';
 import MarketsPanel from '@/components/MarketsPanel';
 import ScmPanel from '@/components/ScmPanel';
@@ -28,6 +28,7 @@ import AnalystWorkspace, { type AnalystEvent } from '@/components/AnalystWorkspa
 import CommandPalette, { type CommandId, type SearchItem } from '@/components/CommandPalette';
 import IntelligenceModeBar, { type IntelligenceMode } from '@/components/IntelligenceModeBar';
 import WatchlistPanel from '@/components/WatchlistPanel';
+import WorldReportPanel from '@/components/WorldReportPanel';
 import LocaleSurface from '@/components/LocaleSurface';
 import OculixSoundscape from '@/components/OculixSoundscape';
 const OculixMap = dynamic(() => import('@/components/OculixMap'), { ssr: false });
@@ -45,6 +46,7 @@ import { selectInPolygon } from '@/lib/aoi';
 import { diffSweep, appendEvents, type WatchBaseline, type WatchEvent } from '@/lib/watch';
 import { STORAGE_KEY, serializeShapes, deserializeShapes, shapesToGeoJSON, downloadFile } from '@/lib/aoi-export';
 import type { OculixTheme } from '@/lib/theme';
+import { BACKGROUND_OPTIONS, LANGUAGE_OPTIONS, type OculixBackground, type OculixLanguage, legacyLanguage } from '@/lib/i18n';
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -232,7 +234,7 @@ export default function Dashboard() {
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number; bounds?: { west: number; south: number; east: number; north: number } } | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   type MobileDrawer = 'more'|'layers'|'markets'|'intel'|'search'|'recon'|'remote'|'alerts'|'space'|'arcgis'|'scm'|'draw';
-  type MobileSurface = MobileDrawer | 'route'|'draw'|'settings'|'health'|'analyst'|'watchlists'|'command';
+  type MobileSurface = MobileDrawer | 'route'|'draw'|'settings'|'health'|'analyst'|'watchlists'|'command'|'report';
   const [mobilePanel, setMobilePanel] = useState<MobileDrawer | null>(null);
   const [mapProjection, setMapProjection] = useState<'globe'|'mercator'>('globe');
   const [mapStyle, setMapStyle] = useState<'dark'|'satellite'>('dark');
@@ -243,20 +245,22 @@ export default function Dashboard() {
   const [drawnPolygons, setDrawnPolygons] = useState<DrawnShape[]>([]);
   const [demoMode, setDemoMode] = useState(false);
   const [oculixTheme, setOculixTheme] = useState<OculixTheme>('core');
-  const [language, setLanguage] = useState<'ar'|'en'>('ar');
+  const [background, setBackground] = useState<OculixBackground>('void');
+  const [language, setLanguage] = useState<OculixLanguage>('ar');
   const [showSettings, setShowSettings] = useState(false);
   const [showSourceHealth, setShowSourceHealth] = useState(false);
   const [showAnalyst, setShowAnalyst] = useState(false);
   const [showWatchlists, setShowWatchlists] = useState(false);
   const [reconQuery, setReconQuery] = useState('');
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showWorldReport, setShowWorldReport] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [visualOptions, setVisualOptions] = useState({ reducedMotion: false, grid: true, scanlines: true, ticker: true, ambient: true });
   const [pwaInstalled, setPwaInstalled] = useState(false);
 
   const resetMobileSurfaces = useCallback(() => {
     setMobilePanel(null);
-    setShowSettings(false); setShowSourceHealth(false); setShowAnalyst(false); setShowWatchlists(false); setShowCommandPalette(false);
+    setShowSettings(false); setShowSourceHealth(false); setShowAnalyst(false); setShowWatchlists(false); setShowCommandPalette(false); setShowWorldReport(false);
     setShowIntel(false); setShowMarkets(false); setShowAlerts(false); setShowSpaceCam(false); setShowDrawing(false); setShowDesktopSearch(false); setShowArcGIS(false); setShowRemote(false);
     if (!navSession) setShowDirections(false);
   }, [navSession]);
@@ -267,13 +271,14 @@ export default function Dashboard() {
       resetMobileSurfaces(); setShowDirections(true); return;
     }
     if (surface === 'draw') { resetMobileSurfaces(); setShowDrawing(true); setMobilePanel('draw'); return; }
-    if (surface === 'settings' || surface === 'health' || surface === 'analyst' || surface === 'watchlists' || surface === 'command') {
+    if (surface === 'settings' || surface === 'health' || surface === 'analyst' || surface === 'watchlists' || surface === 'command' || surface === 'report') {
       resetMobileSurfaces();
       if (surface === 'settings') setShowSettings(true);
       if (surface === 'health') setShowSourceHealth(true);
       if (surface === 'analyst') setShowAnalyst(true);
       if (surface === 'watchlists') setShowWatchlists(true);
       if (surface === 'command') setShowCommandPalette(true);
+      if (surface === 'report') setShowWorldReport(true);
       return;
     }
     if (mobilePanel === surface) { resetMobileSurfaces(); return; }
@@ -286,8 +291,10 @@ export default function Dashboard() {
       const savedTheme = window.localStorage.getItem('oculix-theme');
       const savedSound = window.localStorage.getItem('oculix-sound');
       const savedVisuals = window.localStorage.getItem('oculix-visual-options');
-      if (savedLanguage === 'ar' || savedLanguage === 'en') setLanguage(savedLanguage);
-      if (savedTheme === 'core' || savedTheme === 'ghost' || savedTheme === 'aurora' || savedTheme === 'ember') setOculixTheme(savedTheme);
+      if (LANGUAGE_OPTIONS.some(option => option.id === savedLanguage)) setLanguage(savedLanguage as OculixLanguage);
+      if (['core', 'ghost', 'aurora', 'ember', 'oceanic', 'solar', 'terminal', 'rose'].includes(savedTheme || '')) setOculixTheme(savedTheme as OculixTheme);
+      const savedBackground = window.localStorage.getItem('oculix-background');
+      if (BACKGROUND_OPTIONS.some(option => option.id === savedBackground)) setBackground(savedBackground as OculixBackground);
       if (savedSound === 'true') setSoundEnabled(true);
       if (savedVisuals) {
         const parsed = JSON.parse(savedVisuals);
@@ -312,17 +319,18 @@ export default function Dashboard() {
     return () => window.removeEventListener('keydown', onCommandKey);
   }, []);
   useEffect(() => {
-    document.body.classList.remove('theme-core', 'theme-ghost', 'theme-aurora', 'theme-ember');
-    document.body.classList.add(`theme-${oculixTheme}`);
+    document.body.classList.remove('theme-core', 'theme-ghost', 'theme-aurora', 'theme-ember', 'theme-oceanic', 'theme-solar', 'theme-terminal', 'theme-rose', 'background-void', 'background-aurora', 'background-topography', 'background-radar', 'background-solar', 'background-ocean');
+    document.body.classList.add(`theme-${oculixTheme}`, `background-${background}`);
     document.documentElement.lang = language;
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
     try {
       window.localStorage.setItem('oculix-language', language);
       window.localStorage.setItem('oculix-theme', oculixTheme);
+      window.localStorage.setItem('oculix-background', background);
       window.localStorage.setItem('oculix-sound', String(soundEnabled));
       window.localStorage.setItem('oculix-visual-options', JSON.stringify(visualOptions));
     } catch { /* localStorage is optional */ }
-  }, [language, oculixTheme, soundEnabled, visualOptions]);
+  }, [language, oculixTheme, background, soundEnabled, visualOptions]);
 
   const panelVisibility = {
     layers: showLayers, markets: showMarkets, alerts: showAlerts, space: showSpaceCam,
@@ -344,6 +352,7 @@ export default function Dashboard() {
   }, []);
 
   const isMobile = useIsMobile();
+  const componentLanguage = legacyLanguage(language);
   const startTime = useRef(Date.now());
   const geocodeCache = useRef<Map<string, string>>(new Map());
   const geocodeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -960,7 +969,7 @@ export default function Dashboard() {
 
   return (
     <main data-intelligence-mode={intelligenceMode} className={`fixed inset-0 w-full h-full bg-[var(--bg-void)] overflow-hidden oculix-mode-${intelligenceMode} ${visualOptions.reducedMotion ? 'oculix-reduced-motion' : ''} ${visualOptions.grid ? '' : 'oculix-no-grid'} ${visualOptions.scanlines ? '' : 'oculix-no-scanlines'} ${visualOptions.ambient ? '' : 'oculix-no-ambient'}`}>
-      <PWAInstallPrompt language={language} />
+      <PWAInstallPrompt language={componentLanguage} />
       <LocaleSurface language={language} />
       <OculixSoundscape enabled={soundEnabled} />
       {visualOptions.ambient && <div className="oculix-ambient-field" aria-hidden="true" />}
@@ -971,6 +980,8 @@ export default function Dashboard() {
         setLanguage={setLanguage}
         theme={oculixTheme}
         setTheme={setOculixTheme}
+        background={background}
+        setBackground={setBackground}
         soundEnabled={soundEnabled}
         setSoundEnabled={setSoundEnabled}
         visualOptions={visualOptions}
@@ -980,10 +991,11 @@ export default function Dashboard() {
         setPanelVisibility={setPanelVisibility}
         onResetPanels={resetPanelVisibility}
       />
-      <SourceHealthPanel open={showSourceHealth} onClose={() => setShowSourceHealth(false)} language={language} />
-      <AnalystWorkspace open={showAnalyst} onClose={() => setShowAnalyst(false)} language={language} metrics={analystMetrics} events={analystEvents} mapContext={{ latitude: mapView.latitude, longitude: mapCenter?.lng ?? 0, zoom: mapView.zoom }} onLocate={(lat, lng) => setFlyToLocation({ lat, lng, ts: Date.now() })} />
-      <WatchlistPanel open={showWatchlists} onClose={() => setShowWatchlists(false)} language={language} metrics={analystMetrics} />
-      <CommandPalette open={showCommandPalette} onClose={() => setShowCommandPalette(false)} language={language} onRun={runCommand} searchItems={unifiedSearchItems} onSearch={handleUnifiedSearch} onSearchQuery={handleUnifiedQuery} />
+      <SourceHealthPanel open={showSourceHealth} onClose={() => setShowSourceHealth(false)} language={componentLanguage} />
+      <AnalystWorkspace open={showAnalyst} onClose={() => setShowAnalyst(false)} language={componentLanguage} metrics={analystMetrics} events={analystEvents} mapContext={{ latitude: mapView.latitude, longitude: mapCenter?.lng ?? 0, zoom: mapView.zoom }} onLocate={(lat, lng) => setFlyToLocation({ lat, lng, ts: Date.now() })} />
+      <WatchlistPanel open={showWatchlists} onClose={() => setShowWatchlists(false)} language={componentLanguage} metrics={analystMetrics} />
+      <CommandPalette open={showCommandPalette} onClose={() => setShowCommandPalette(false)} language={componentLanguage} onRun={runCommand} searchItems={unifiedSearchItems} onSearch={handleUnifiedSearch} onSearchQuery={handleUnifiedQuery} />
+      {showWorldReport && <WorldReportPanel data={data} dataVersion={dataVersion} language={language} onClose={() => setShowWorldReport(false)} onLocate={(lat, lng) => setFlyToLocation({ lat, lng, ts: Date.now() })} />}
 
       {/* ── SPLASH ── */}
       <AnimatePresence>
@@ -1217,7 +1229,7 @@ export default function Dashboard() {
           aircraftAirports={aircraftAirports}
         />
       </ErrorBoundary>
-      <IntelligenceModeBar language={language} mode={intelligenceMode} onModeChange={setIntelligenceMode} timeCursor={timeCursor} onTimeChange={setTimeCursor} />
+      <IntelligenceModeBar language={componentLanguage} mode={intelligenceMode} onModeChange={setIntelligenceMode} timeCursor={timeCursor} onTimeChange={setTimeCursor} />
 
       {/* ── DIRECTIONS — opens beside the right-hand tool rail ── */}
       <div
@@ -1426,6 +1438,7 @@ export default function Dashboard() {
           <Crosshair className="w-3 h-3 text-violet-300" />
           <span className="hidden sm:inline">{language === 'ar' ? 'المحلل' : 'ANALYST'}</span>
         </button>
+        <button type="button" onClick={() => setShowWorldReport(true)} className="pointer-events-auto glass-panel px-2.5 py-1.5 flex items-center gap-1.5 text-[9px] font-mono tracking-widest hover:opacity-80 transition-opacity border-amber-400/30 bg-amber-400/10" title={language === 'ar' ? 'تقرير آخر 24 ساعة' : 'Last 24-hour planet report'} aria-label={language === 'ar' ? 'تقرير آخر 24 ساعة' : 'Last 24-hour planet report'}><FileText className="w-3 h-3 text-amber-300" /><span className="hidden lg:inline">{language === 'ar' ? 'تقرير 24س' : '24H REPORT'}</span></button>
         <button type="button" onClick={() => setShowCommandPalette(true)} className="pointer-events-auto glass-panel px-2 py-1.5 text-[9px] font-mono tracking-widest text-white/70 hover:text-white transition-colors" title={language === 'ar' ? 'مركز الأوامر' : 'Command palette'} aria-label={language === 'ar' ? 'مركز الأوامر' : 'Command palette'}>⌘K</button>
 
       </motion.div>
@@ -1465,7 +1478,7 @@ export default function Dashboard() {
           <AnimatePresence>
             {showIntel && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="absolute right-12 top-1/2 -translate-y-1/2 w-80">
-                <OsintPanel language={language} initialQuery={reconQuery} onSweepVisualize={setSweepData} onScanGeolocate={(target, data) => {
+                <OsintPanel language={componentLanguage} initialQuery={reconQuery} onSweepVisualize={setSweepData} onScanGeolocate={(target, data) => {
                   setScanTargets(prev => {
                     const existing = prev.filter(t => t.id !== target);
                     return [{ id: target, timestamp: Date.now(), ...data }, ...existing].slice(0, 10);
@@ -1511,7 +1524,7 @@ export default function Dashboard() {
           <AnimatePresence>
             {showMarkets && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="absolute right-12 top-1/2 -translate-y-1/2 w-80">
-                <MarketsPanel language={language} data={data} spaceWeather={spaceWeather} />
+                <MarketsPanel language={componentLanguage} data={data} spaceWeather={spaceWeather} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -1531,7 +1544,7 @@ export default function Dashboard() {
           <AnimatePresence>
             {showAlerts && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="absolute right-12 top-1/2 -translate-y-1/2 w-80">
-                <LiveAlerts language={language} data={data} onLocate={(lat, lng) => setFlyToLocation({ lat, lng, ts: Date.now() })} onWatchFeed={(url, name) => { setLiveFeedUrl(url); setLiveFeedName(name); }} />
+                <LiveAlerts language={componentLanguage} data={data} onLocate={(lat, lng) => setFlyToLocation({ lat, lng, ts: Date.now() })} onWatchFeed={(url, name) => { setLiveFeedUrl(url); setLiveFeedName(name); }} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -1808,6 +1821,7 @@ export default function Dashboard() {
                           { id: 'analyst' as const, icon: Crosshair, ar: 'وضع المحلل', en: 'Analyst mode' },
                           { id: 'settings' as const, icon: Settings2, ar: 'الإعدادات', en: 'Settings' },
                           { id: 'command' as const, icon: Search, ar: 'البحث والأوامر', en: 'Search & commands' },
+                          { id: 'report' as const, icon: FileText, ar: 'تقرير آخر 24 ساعة', en: '24-hour planet report' },
                         ] as const).map(item => <button key={item.id} type="button" className="mobile-more-btn" onClick={() => openMobileSurface(item.id)}><item.icon size={17} /><span>{language === 'ar' ? item.ar : item.en}</span><small>{language === 'ar' ? 'فتح' : 'Open'}</small></button>)}
                       </div>
                     </div>
@@ -1829,13 +1843,13 @@ export default function Dashboard() {
                       </div>
                     </>
                   )}
-                  {mobilePanel === 'markets' && <MarketsPanel language={language} data={data} spaceWeather={spaceWeather} />}
-                  {mobilePanel === 'alerts' && <LiveAlerts language={language} data={data} onLocate={(lat, lng) => { setFlyToLocation({ lat, lng, ts: Date.now() }); setMobilePanel(null); }} onWatchFeed={(url, name) => { setLiveFeedUrl(url); setLiveFeedName(name); }} />}
+                  {mobilePanel === 'markets' && <MarketsPanel language={componentLanguage} data={data} spaceWeather={spaceWeather} />}
+                  {mobilePanel === 'alerts' && <LiveAlerts language={componentLanguage} data={data} onLocate={(lat, lng) => { setFlyToLocation({ lat, lng, ts: Date.now() }); setMobilePanel(null); }} onWatchFeed={(url, name) => { setLiveFeedUrl(url); setLiveFeedName(name); }} />}
                   {mobilePanel === 'space' && <SpaceCam />}
                   {mobilePanel === 'scm' && <ScmPanel data={data} />}
                   {mobilePanel === 'arcgis' && <div className="glass-panel-sm p-2"><ArcGISPanel onImportLayer={(layer) => setArcgisLayers(prev => [...prev.filter(l => l.id !== layer.id), { ...layer, color: layer.color || '#D4AF37', visible: true, opacity: layer.opacity ?? 0.8 }])} onRemoveLayer={(id) => setArcgisLayers(prev => prev.filter(l => l.id !== id))} onUpdateLayer={(id, updates) => setArcgisLayers(prev => prev.map(l => l.id === id ? { ...l, ...updates } : l))} importedLayers={arcgisLayers} mapBounds={mapCenter?.bounds || null} /></div>}
                   {mobilePanel === 'draw' && <div className="mobile-drawing-surface"><DrawingToolbar drawMode={drawMode} onSetDrawMode={setDrawMode} progress={drawProgress} polygons={drawnPolygons} onDeletePolygon={(id) => setDrawnPolygons(p => p.filter(x => x.id !== id))} onClearAll={() => { setDrawnPolygons([]); setSelectedPolygon(null); }} onExportGeoJSON={handleExportGeoJSON} selectedPolygon={selectedPolygon} onSelectPolygon={setSelectedPolygon} onRenamePolygon={(id, name) => setDrawnPolygons(p => p.map(x => x.id === id ? { ...x, name } : x))} data={data} onLocateEntity={(lat, lng) => setFlyToLocation({ lat, lng, zoom: 12, ts: Date.now() })} watched={watched} onToggleWatch={toggleWatch} watchEvents={watchEvents} /></div>}
-                  {mobilePanel === 'intel' && <IntelFeed language={language} data={data} onLocate={(lat, lng) => { setFlyToLocation({ lat, lng, ts: Date.now() }); setMobilePanel(null); }} />}
+                  {mobilePanel === 'intel' && <IntelFeed language={componentLanguage} data={data} onLocate={(lat, lng) => { setFlyToLocation({ lat, lng, ts: Date.now() }); setMobilePanel(null); }} />}
                   {mobilePanel === 'search' && (
                     <div className="space-y-2">
                       <SearchBar onLocate={(lat, lng, zoom) => { setFlyToLocation({ lat, lng, zoom, ts: Date.now() }); setMobilePanel(null); }} />
@@ -1844,7 +1858,7 @@ export default function Dashboard() {
                   )}
                   {mobilePanel === 'recon' && (
                     <div className="space-y-2">
-                      <OsintPanel language={language} initialQuery={reconQuery} isOpen={true} onClose={() => setMobilePanel(null)} isMobile={true} onSweepVisualize={setSweepData} />
+                      <OsintPanel language={componentLanguage} initialQuery={reconQuery} isOpen={true} onClose={() => setMobilePanel(null)} isMobile={true} onSweepVisualize={setSweepData} />
                     </div>
                   )}
                   {mobilePanel === 'remote' && (

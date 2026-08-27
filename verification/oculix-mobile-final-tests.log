@@ -1,0 +1,59 @@
+
+> oculix@0.1.0 test
+> vitest run --run
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/ubuntu/Oculix-v9-enhanced
+
+ ✓ src/lib/draw.test.ts (28 tests) 33ms
+ ✓ src/lib/geo.test.ts (24 tests) 40ms
+ ✓ src/lib/camera-feed.test.ts (27 tests) 11ms
+ ✓ src/app/api/directions/route.test.ts (20 tests) 11ms
+ ✓ src/app/api/aircraft/route.test.ts (32 tests) 22ms
+ ✓ src/lib/watch.test.ts (17 tests) 13ms
+ ✓ src/lib/navigation.test.ts (19 tests) 9ms
+ ✓ src/lib/orbit.test.ts (18 tests) 53ms
+ ✓ src/app/api/markets/route.test.ts (16 tests) 16ms
+ ✓ src/components/DirectionsBar.test.ts (22 tests) 29ms
+ ✓ src/lib/aoi-export.test.ts (12 tests) 11ms
+ ✓ src/lib/satellite-layer.test.ts (16 tests) 9ms
+ ✓ src/app/api/geosearch/route.test.ts (13 tests) 8ms
+ ✓ src/components/FlightWatchPanel.test.ts (15 tests) 16ms
+ ✓ src/lib/youtube.test.ts (13 tests) 10ms
+ ✓ src/lib/aoi.test.ts (14 tests) 9ms
+ ✓ src/app/api/cctv/newzealand.test.ts (8 tests | 1 skipped) 8ms
+ ✓ src/app/api/cctv/hongkong.test.ts (8 tests | 1 skipped) 8ms
+ ✓ src/app/api/cctv/utah.test.ts (10 tests | 1 skipped) 7ms
+ ✓ src/lib/skyline.test.ts (11 tests | 1 skipped) 8ms
+ ✓ src/app/api/cctv/michigan.test.ts (7 tests | 1 skipped) 5ms
+stderr | src/lib/sourceCache.test.ts > cachedSource > keeps serving the last good list when a refresh throws
+[OCULIX] t4 refresh failed — serving 1 cached cameras
+
+ ✓ src/app/api/cctv/oregon.test.ts (6 tests | 1 skipped) 5ms
+ ✓ src/lib/sourceCache.test.ts (7 tests) 120ms
+stderr | src/lib/sourceCache.test.ts > cachedSource > returns empty when the first fetch fails with nothing cached
+[OCULIX] t6 fetch failed with no cache to fall back on: Error: down
+    at /home/ubuntu/Oculix-v9-enhanced/src/lib/sourceCache.test.ts:69:62
+    at /home/ubuntu/Oculix-v9-enhanced/src/lib/sourceCache.ts:70:28
+    at /home/ubuntu/Oculix-v9-enhanced/src/lib/sourceCache.ts:95:5
+    at /home/ubuntu/Oculix-v9-enhanced/src/lib/sourceCache.test.ts:70:18
+    at file:///home/ubuntu/Oculix-v9-enhanced/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/ubuntu/Oculix-v9-enhanced/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/ubuntu/Oculix-v9-enhanced/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/ubuntu/Oculix-v9-enhanced/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at runSuite (file:///home/ubuntu/Oculix-v9-enhanced/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/ubuntu/Oculix-v9-enhanced/node_modules/@vitest/runner/dist/index.js:1205:15)
+
+ ✓ src/lib/sourceHealth.test.ts (4 tests) 16ms
+ ✓ src/app/api/markets/history/route.test.ts (8 tests) 7ms
+ ✓ src/lib/freshness.test.ts (5 tests) 5ms
+ ✓ src/lib/scanner-policy.test.ts (4 tests) 4ms
+ ✓ src/lib/ssrf-guard.test.ts (3 tests) 15ms
+ ✓ src/lib/auditLog.test.ts (2 tests) 6ms
+
+ Test Files  29 passed (29)
+      Tests  383 passed | 6 skipped (389)
+   Start at  12:49:21
+   Duration  2.43s (transform 878ms, setup 0ms, collect 2.46s, tests 514ms, environment 6ms, prepare 2.54s)
+

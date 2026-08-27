@@ -1,0 +1,8 @@
+
+## vNext verification
+
+- Full test run: `29 passed`, `383 passed | 6 skipped (389)`.
+- Production build: passed TypeScript, generated 56 static pages and 69 API routes; BUILD_ID from this run was `WZiWIc3M94XcGwLkvfAbN` before subsequent source-only edits.
+- Scanner/freshness security tests: 16 passed.
+- Targeted lint after cleanup: passed for AnalystWorkspace, CommandPalette, WatchlistPanel, freshness, scanner-policy, ssrf-guard, scanner route, markets route, and health route.
+- Browser smoke: Arabic dashboard, Command Palette, IP-to-Recon handoff, Settings guide, and Analyst timeline passed visual/manual checks. No scan was executed.

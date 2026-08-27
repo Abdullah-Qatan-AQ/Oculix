@@ -2,7 +2,9 @@
 
 import { useEffect } from 'react';
 
-type Language = 'ar' | 'en';
+import type { OculixLanguage } from '@/lib/i18n';
+
+type Language = OculixLanguage;
 
 // Only stable UI copy belongs here. Live payloads, entity names, market values,
 // source names and provider text are intentionally not translated by this layer.
@@ -46,14 +48,22 @@ const translations: Record<string, string> = {
   'Settings': 'الإعدادات', 'Directions': 'الاتجاهات', 'Live from Space': 'بث مباشر من الفضاء', 'Live Alerts': 'التنبيهات المباشرة', 'Draw': 'الرسم', 'Search': 'البحث', 'World Remote': 'التحكم العالمي البعيد', 'Night Mode': 'الوضع الليلي', 'Satellite View': 'عرض الأقمار الصناعية', '3D Globe': 'كرة أرضية ثلاثية الأبعاد', '2D Map': 'خريطة ثنائية الأبعاد', 'Open layers': 'فتح الطبقات', 'Documentation & API Reference': 'التوثيق ومرجع API', 'Docs': 'التوثيق', 'Cursor coordinates (hover over map)': 'إحداثيات المؤشر (مرّر فوق الخريطة)', 'Reverse-geocoded location name': 'اسم الموقع المعكوس جغرافياً', 'Current zoom level': 'مستوى التكبير الحالي', 'Use my location': 'استخدم موقعي', 'Stop live tracking': 'إيقاف التتبع المباشر', 'Track my location live': 'تتبع موقعي مباشرة', 'Stop following': 'إيقاف المتابعة', 'Keep the map centred on me': 'إبقاء الخريطة متمركزة عليّ', 'Close directions': 'إغلاق المسارات', 'Choose starting point': 'اختر نقطة البداية', 'Choose destination': 'اختر الوجهة', 'Swap origin and destination': 'تبديل البداية والوجهة', 'Travel mode': 'وضع التنقل', 'Add a stop': 'إضافة محطة', 'Route options': 'خيارات المسار', 'Hide layer': 'إخفاء الطبقة', 'Show layer': 'إظهار الطبقة', 'Layer settings': 'إعدادات الطبقة', 'Remove Layer': 'إزالة الطبقة', 'Share view (S)': 'مشاركة العرض (S)', 'Close (Esc)': 'إغلاق (Esc)', 'Live video is hosted by the camera operator — opens their page': 'الفيديو المباشر مستضاف لدى مشغل الكاميرا — يفتح صفحته', 'SEARCH ADDRESS, CITY, OR COORDINATES...': 'ابحث عن عنوان أو مدينة أو إحداثيات...', 'Search ArcGIS layers...': 'ابحث في طبقات ArcGIS...', 'Filter tools…': 'تصفية الأدوات…',
 };
 
-function translateText(value: string): string {
+const languageTranslations: Record<Exclude<OculixLanguage, 'ar' | 'en'>, Record<string, string>> = {
+  es: { 'OPEN SOURCE INTELLIGENCE': 'INTELIGENCIA DE FUENTES ABIERTAS', 'GLOBAL INTELLIGENCE PLATFORM': 'PLATAFORMA DE INTELIGENCIA GLOBAL', 'REAL-TIME GLOBAL MONITORING': 'MONITORIZACIÓN GLOBAL EN TIEMPO REAL', 'STATUS': 'ESTADO', 'LIVE': 'EN VIVO', 'LAYERS': 'CAPAS', 'ENTITIES': 'ENTIDADES', 'RECON': 'RECONOCIMIENTO', 'SPACE': 'ESPACIO', 'AVIATION': 'AVIACIÓN', 'MARKETS': 'MERCADOS', 'ALERTS': 'ALERTAS', 'LIVE ALERTS': 'ALERTAS EN VIVO', 'DRAW': 'DIBUJO', 'ROUTE': 'RUTA', 'SEARCH': 'BUSCAR', 'SETTINGS': 'AJUSTES', 'SOURCE': 'FUENTE', 'NEWS': 'NOTICIAS', 'QUAKES': 'TERREMOTOS', 'ALL': 'TODO', 'NOW': 'AHORA', 'CLOSE': 'CERRAR', 'CONNECTED': 'CONECTADO' },
+  fr: { 'OPEN SOURCE INTELLIGENCE': 'INTELLIGENCE EN SOURCES OUVERTES', 'GLOBAL INTELLIGENCE PLATFORM': 'PLATEFORME DE RENSEIGNEMENT MONDIALE', 'REAL-TIME GLOBAL MONITORING': 'SURVEILLANCE MONDIALE EN TEMPS RÉEL', 'STATUS': 'ÉTAT', 'LIVE': 'EN DIRECT', 'LAYERS': 'COUCHES', 'ENTITIES': 'ENTITÉS', 'RECON': 'RECONNAISSANCE', 'SPACE': 'ESPACE', 'AVIATION': 'AVIATION', 'MARKETS': 'MARCHÉS', 'ALERTS': 'ALERTES', 'LIVE ALERTS': 'ALERTES EN DIRECT', 'DRAW': 'DESSIN', 'ROUTE': 'ITINÉRAIRE', 'SEARCH': 'RECHERCHE', 'SETTINGS': 'PARAMÈTRES', 'SOURCE': 'SOURCE', 'NEWS': 'ACTUALITÉS', 'QUAKES': 'SÉISMES', 'ALL': 'TOUT', 'NOW': 'MAINTENANT', 'CLOSE': 'FERMER', 'CONNECTED': 'CONNECTÉ' },
+  de: { 'OPEN SOURCE INTELLIGENCE': 'OPEN-SOURCE-INTELLIGENCE', 'GLOBAL INTELLIGENCE PLATFORM': 'GLOBALE INTELLIGENZPLATTFORM', 'REAL-TIME GLOBAL MONITORING': 'GLOBALE ECHTZEITÜBERWACHUNG', 'STATUS': 'STATUS', 'LIVE': 'LIVE', 'LAYERS': 'EBENEN', 'ENTITIES': 'OBJEKTE', 'RECON': 'AUFKLÄRUNG', 'SPACE': 'WELTRAUM', 'AVIATION': 'LUFTFAHRT', 'MARKETS': 'MÄRKTE', 'ALERTS': 'WARNUNGEN', 'LIVE ALERTS': 'LIVE-WARNUNGEN', 'DRAW': 'ZEICHNEN', 'ROUTE': 'ROUTE', 'SEARCH': 'SUCHE', 'SETTINGS': 'EINSTELLUNGEN', 'SOURCE': 'QUELLE', 'NEWS': 'NACHRICHTEN', 'QUAKES': 'ERDBEBEN', 'ALL': 'ALLE', 'NOW': 'JETZT', 'CLOSE': 'SCHLIESSEN', 'CONNECTED': 'VERBUNDEN' },
+  tr: { 'OPEN SOURCE INTELLIGENCE': 'AÇIK KAYNAK İSTİHBARATI', 'GLOBAL INTELLIGENCE PLATFORM': 'KÜRESEL İSTİHBARAT PLATFORMU', 'REAL-TIME GLOBAL MONITORING': 'GERÇEK ZAMANLI KÜRESEL İZLEME', 'STATUS': 'DURUM', 'LIVE': 'CANLI', 'LAYERS': 'KATMANLAR', 'ENTITIES': 'VARLIKLAR', 'RECON': 'KEŞİF', 'SPACE': 'UZAY', 'AVIATION': 'HAVACILIK', 'MARKETS': 'PİYASALAR', 'ALERTS': 'UYARILAR', 'LIVE ALERTS': 'CANLI UYARILAR', 'DRAW': 'ÇİZİM', 'ROUTE': 'ROTA', 'SEARCH': 'ARAMA', 'SETTINGS': 'AYARLAR', 'SOURCE': 'KAYNAK', 'NEWS': 'HABERLER', 'QUAKES': 'DEPREMLER', 'ALL': 'TÜMÜ', 'NOW': 'ŞİMDİ', 'CLOSE': 'KAPAT', 'CONNECTED': 'BAĞLI' },
+};
+
+function translateText(value: string, language: OculixLanguage = 'ar'): string {
   const trimmed = value.trim();
   if (!trimmed) return value;
-  const exact = translations[trimmed] || translations[trimmed.toUpperCase()];
+  const dictionary = language === 'ar' ? translations : language === 'en' ? {} : languageTranslations[language];
+  const exact = dictionary[trimmed] || dictionary[trimmed.toUpperCase()];
   if (exact) return value.replace(trimmed, exact);
   // Translate only known stable phrases inside compound labels. Entries are
   // longest-first so LIVE STREAM is handled before the shorter LIVE token.
-  return Object.entries(translations)
+  return Object.entries(dictionary)
     .filter(([source]) => source.length >= 4)
     .sort((a, b) => b[0].length - a[0].length)
     .reduce((result, [source, target]) => result.split(source).join(target), value);
@@ -91,7 +101,7 @@ export default function LocaleSurface({ language }: { language: Language }) {
           if (!value) return;
           if (!saved[attribute] || (lastRendered[attribute] !== undefined && value !== lastRendered[attribute])) saved[attribute] = value;
           const original = saved[attribute] || value;
-          const next = language === 'ar' ? translateText(original) : original;
+          const next = language === 'en' ? original : translateText(original, language);
           if (value !== next) element.setAttribute(attribute, next);
           lastRendered[attribute] = next;
         });
@@ -114,7 +124,7 @@ export default function LocaleSurface({ language }: { language: Language }) {
         const previous = renderedTextByNode.get(node);
         if (!originalTextByNode.has(node) || (previous !== undefined && value !== previous)) originalTextByNode.set(node, value);
         const original = originalTextByNode.get(node) || value;
-        const next = language === 'ar' ? translateText(original) : original;
+        const next = language === 'en' ? original : translateText(original, language);
         if (node.nodeValue !== next) node.nodeValue = next;
         renderedTextByNode.set(node, next);
       });

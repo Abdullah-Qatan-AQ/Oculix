@@ -1,0 +1,81 @@
+=== TEST STATUS ===
+0
+ ✓ src/app/api/cctv/oregon.test.ts (6 tests | 1 skipped) 7ms
+stderr | src/lib/sourceCache.test.ts > cachedSource > keeps serving the last good list when a refresh throws
+[OCULIX] t4 refresh failed — serving 1 cached cameras
+
+stderr | src/lib/sourceCache.test.ts > cachedSource > returns empty when the first fetch fails with nothing cached
+[OCULIX] t6 fetch failed with no cache to fall back on: Error: down
+    at /home/ubuntu/Oculix-v9-enhanced/src/lib/sourceCache.test.ts:69:62
+    at /home/ubuntu/Oculix-v9-enhanced/src/lib/sourceCache.ts:70:28
+    at /home/ubuntu/Oculix-v9-enhanced/src/lib/sourceCache.ts:95:5
+    at /home/ubuntu/Oculix-v9-enhanced/src/lib/sourceCache.test.ts:70:18
+    at file:///home/ubuntu/Oculix-v9-enhanced/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/ubuntu/Oculix-v9-enhanced/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/ubuntu/Oculix-v9-enhanced/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/ubuntu/Oculix-v9-enhanced/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at runSuite (file:///home/ubuntu/Oculix-v9-enhanced/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/ubuntu/Oculix-v9-enhanced/node_modules/@vitest/runner/dist/index.js:1205:15)
+
+ ✓ src/lib/sourceCache.test.ts (7 tests) 203ms
+ ✓ src/lib/sourceHealth.test.ts (4 tests) 16ms
+ ✓ src/app/api/markets/history/route.test.ts (8 tests) 7ms
+ ✓ src/lib/freshness.test.ts (5 tests) 5ms
+ ✓ src/lib/scanner-policy.test.ts (4 tests) 5ms
+ ✓ src/lib/ssrf-guard.test.ts (3 tests) 14ms
+ ✓ src/lib/auditLog.test.ts (2 tests) 7ms
+
+ Test Files  29 passed (29)
+      Tests  383 passed | 6 skipped (389)
+   Start at  03:24:23
+   Duration  2.94s (transform 1.02s, setup 0ms, collect 2.99s, tests 600ms, environment 33ms, prepare 2.95s)
+
+=== BUILD STATUS ===
+0
+├ ƒ /api/infrastructure
+├ ƒ /api/live-news
+├ ƒ /api/malware
+├ ƒ /api/maritime
+├ ƒ /api/markets
+├ ƒ /api/markets/history
+├ ƒ /api/news
+├ ƒ /api/osint/bgp
+├ ƒ /api/osint/certs
+├ ƒ /api/osint/crypto
+├ ƒ /api/osint/cve
+├ ƒ /api/osint/dns
+├ ƒ /api/osint/github
+├ ƒ /api/osint/hudsonrock
+├ ƒ /api/osint/ip
+├ ƒ /api/osint/leaks
+├ ƒ /api/osint/mac
+├ ƒ /api/osint/phone
+├ ƒ /api/osint/sanctions
+├ ƒ /api/osint/shodan
+├ ƒ /api/osint/sweep
+├ ƒ /api/osint/threats
+├ ƒ /api/osint/username
+├ ƒ /api/osint/whois
+├ ƒ /api/proxy-tiles
+├ ƒ /api/radar
+├ ƒ /api/region-dossier
+├ ƒ /api/satellites
+├ ƒ /api/satellites/orbit
+├ ƒ /api/scanner
+├ ƒ /api/scm-suppliers
+├ ƒ /api/sdk/ingest
+├ ƒ /api/sdk/stream
+├ ƒ /api/sentinel
+├ ƒ /api/space-weather
+├ ƒ /api/stats
+├ ƒ /api/weather
+└ ○ /docs
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+=== BUILD ID ===
+GWwZmNRxwcRcbb994cBPB

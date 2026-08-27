@@ -1,1 +1,1 @@
-export type OculixTheme = 'core' | 'ghost' | 'aurora' | 'ember';
+export type OculixTheme = 'core' | 'ghost' | 'aurora' | 'ember' | 'oceanic' | 'solar' | 'terminal' | 'rose';
