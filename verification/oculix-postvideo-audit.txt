@@ -1,0 +1,28 @@
+=== COUNTS ===
+tsx_components=36
+api_routes=69
+=== OLD BRAND OUTSIDE LICENSE ===
+=== PAYMENT/SUPPORT SCAN ===
+src/app/api/osint/threats/route.ts:19:      const res = await fetch('https://otx.alienvault.com/api/v1/pulses/subscribed?limit=10&page=1', {
+src/app/globals.css:178:   GLASS PANELS — Premium depth with micro-reflections
+src/app/globals.css:487:   ENHANCED DESIGN SYSTEM — Premium Components & Micro-Interactions
+src/app/globals.css:1041:   12. PREMIUM LAYER TOGGLE — Larger toggle with glow trail
+src/app/globals.css:1043:.layer-toggle-premium {
+src/app/globals.css:1058:.layer-toggle-premium::after {
+src/app/globals.css:1075:.layer-toggle-premium.active {
+src/app/globals.css:1081:.layer-toggle-premium.active::after {
+src/app/globals.css:1090:.layer-toggle-premium.active::before {
+src/app/globals.css:1106:.layer-toggle-premium--cyan.active {
+src/app/globals.css:1112:.layer-toggle-premium--cyan.active::after {
+src/app/globals.css:1258:  .layer-toggle-premium::after {
+src/components/ArcGISPanel.tsx:29:   Premium dark-ops glassmorphism aesthetic
+src/components/MarketChart.tsx:109:    chart.subscribeCrosshairMove((param) => {
+src/lib/sdk/PolybolosClient.ts:6: * ║  Subscribes to OCULIX feeds + external providers (Lattice),     ║
+src/lib/sdk/LatticeAdapter.ts:105:      // const stream = await latticeClient.subscribeToEntities(this.config.entityFilter);
+src/lib/sherlock.ts:159:  'Patreon', 'BuyMeACoffee', 'Kick', 'VK', 'Vimeo', 'Dribbble', 'Behance', 'DeviantART',
+=== NEW SURFACES ===
+src/app/api/health/sources/route.ts
+src/components/AnalystWorkspace.tsx
+src/components/CommandPalette.tsx
+src/components/SourceHealthPanel.tsx
+src/components/WatchlistPanel.tsx

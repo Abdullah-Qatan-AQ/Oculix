@@ -11,8 +11,11 @@ import { Newspaper, ChevronDown, ChevronUp, ExternalLink, MapPin, Zap } from 'lu
 
 interface IntelFeedProps {
   data: any;
+  language?: 'ar' | 'en';
   onLocate?: (lat: number, lng: number) => void;
 }
+
+const copy = { ar: { feed: 'موجز المعلومات', alerts: 'تنبيهات', awaiting: 'بانتظار المعلومات…', now: 'الآن', minute: 'دقيقة', hour: 'ساعة', day: 'يوم', critical: 'حرج', high: 'مرتفع', elevated: 'متقدم', low: 'منخفض' }, en: { feed: 'SIGINT FEED', alerts: 'ALERTS', awaiting: 'AWAITING INTELLIGENCE…', now: 'now', minute: 'm ago', hour: 'h ago', day: 'd ago', critical: 'CRITICAL', high: 'HIGH', elevated: 'ELEVATED', low: 'LOW' } } as const;
 
 function getRiskClass(score: number): string {
   if (score >= 8) return 'risk-critical';
@@ -21,28 +24,32 @@ function getRiskClass(score: number): string {
   return 'risk-low';
 }
 
-function getRiskLabel(score: number): string {
-  if (score >= 8) return 'CRITICAL';
-  if (score >= 6) return 'HIGH';
-  if (score >= 4) return 'ELEVATED';
-  return 'LOW';
+function getRiskLabel(score: number, language: 'ar' | 'en'): string {
+  const t = copy[language];
+  if (score >= 8) return t.critical;
+  if (score >= 6) return t.high;
+  if (score >= 4) return t.elevated;
+  return t.low;
 }
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, language: 'ar' | 'en'): string {
   try {
     const date = new Date(dateStr);
     const diff = Date.now() - date.getTime();
+    if (!Number.isFinite(diff) || diff < 60_000) return copy[language].now;
     const mins = Math.floor(diff / 60000);
-    if (mins < 60) return `${mins}m ago`;
+    if (mins < 60) return language === 'ar' ? `منذ ${mins} ${copy.ar.minute}` : `${mins}${copy.en.minute}`;
     const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs}h ago`;
-    return `${Math.floor(hrs / 24)}d ago`;
+    if (hrs < 24) return language === 'ar' ? `منذ ${hrs} ${copy.ar.hour}` : `${hrs}${copy.en.hour}`;
+    const days = Math.floor(hrs / 24);
+    return language === 'ar' ? `منذ ${days} ${copy.ar.day}` : `${days}${copy.en.day}`;
   } catch {
     return '';
   }
 }
 
-export default function IntelFeed({ data, onLocate }: IntelFeedProps) {
+export default function IntelFeed({ data, language = 'en', onLocate }: IntelFeedProps) {
+  const t = copy[language];
   const [expanded, setExpanded] = useState(true);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const news = data.news || [];
@@ -61,10 +68,10 @@ export default function IntelFeed({ data, onLocate }: IntelFeedProps) {
       >
         <div className="flex items-center gap-2">
           <Newspaper className="w-3.5 h-3.5 text-[var(--gold-primary)]" />
-          <span className="hud-text text-[11px] text-[var(--text-primary)]">SIGINT FEED</span>
+          <span className="hud-text text-[11px] text-[var(--text-primary)]">{t.feed}</span>
           <span className="gotham-tag gotham-tag--info" style={{ fontSize: '9px', padding: '1px 5px' }}>{news.length}</span>
           {news.some((n: any) => n.risk_score >= 8) && (
-            <span className="gotham-tag gotham-tag--critical" style={{ fontSize: '9px', padding: '1px 4px' }}>ALERTS</span>
+            <span className="gotham-tag gotham-tag--critical" style={{ fontSize: '9px', padding: '1px 4px' }}>{t.alerts}</span>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -86,7 +93,7 @@ export default function IntelFeed({ data, onLocate }: IntelFeedProps) {
               {news.length === 0 ? (
                 <div className="px-4 py-6 text-center">
                   <span className="text-[10px] font-mono text-[var(--text-muted)] tracking-widest">
-                    AWAITING INTELLIGENCE...
+                    {t.awaiting}
                   </span>
                 </div>
               ) : (
@@ -102,7 +109,7 @@ export default function IntelFeed({ data, onLocate }: IntelFeedProps) {
                     {/* Top row: risk badge + source + time */}
                     <div className="flex items-center gap-2 mb-1">
                       <span className={`text-[10px] font-mono font-bold tracking-widest ${getRiskClass(item.risk_score)}`}>
-                        {getRiskLabel(item.risk_score)}
+                        {getRiskLabel(item.risk_score, language)}
                       </span>
                       <span className="text-[9px] font-mono text-[var(--text-muted)] bg-[var(--bg-tertiary)] px-1.5 py-0.5 rounded">
                         {item.source}
@@ -119,7 +126,7 @@ export default function IntelFeed({ data, onLocate }: IntelFeedProps) {
                         </button>
                       )}
                       <span className="text-[9px] font-mono text-[var(--text-muted)] ml-auto">
-                        {timeAgo(item.published)}
+                        {timeAgo(item.published, language)}
                       </span>
                     </div>
 
@@ -127,6 +134,11 @@ export default function IntelFeed({ data, onLocate }: IntelFeedProps) {
                     <h4 className="text-[10px] text-[var(--text-primary)] leading-tight line-clamp-2">
                       {item.title}
                     </h4>
+                    <div className="oculix-provenance-row" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                      <span>{language === 'ar' ? 'المصدر' : 'SOURCE'}: {item.source || (language === 'ar' ? 'غير معروف' : 'Unknown')}</span>
+                      <span>{language === 'ar' ? 'الثقة' : 'CONFIDENCE'}: {typeof item.confidence === 'number' ? `${Math.round(item.confidence * (item.confidence <= 1 ? 100 : 1))}%` : (language === 'ar' ? 'غير محددة' : 'UNSCORED')}</span>
+                      <span>{timeAgo(item.published, language)}</span>
+                    </div>
 
                     {/* Machine Assessment (if critical) */}
                     {item.machine_assessment && (

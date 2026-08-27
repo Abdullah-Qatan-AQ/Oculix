@@ -67,9 +67,13 @@ const TABS: ToolDef[] = [
   { id: 'crypto', label: 'CHAIN INTEL', icon: Bitcoin, placeholder: 'BTC, ETH or SOL wallet address', color: '#F7931A', group: 'chain', blurb: 'Wallet forensics and daily brief' },
 ];
 
-interface OsintPanelProps { isOpen?: boolean; onClose?: () => void; isMobile?: boolean; onSweepVisualize?: (data: any) => void; onScanGeolocate?: (target: string, data: any) => void; }
+interface OsintPanelProps { isOpen?: boolean; onClose?: () => void; isMobile?: boolean; language?: 'ar' | 'en'; onSweepVisualize?: (data: any) => void; onScanGeolocate?: (target: string, data: any) => void; }
 
-function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintPanelProps) {
+function OsintPanelInner({ isMobile, language = 'en', onSweepVisualize, onScanGeolocate }: OsintPanelProps) {
+  const isArabic = language === 'ar';
+  const groupLabels: Record<GroupId, string> = isArabic ? { network: 'الشبكات والمضيف', domain: 'النطاق والويب', identity: 'الهوية', threat: 'التهديد والتعرّض', chain: 'سلسلة الكتل' } : { network: 'NETWORK & HOST', domain: 'DOMAIN & WEB', identity: 'IDENTITY', threat: 'THREAT & EXPOSURE', chain: 'BLOCKCHAIN' };
+  const toolLabels: Record<string, string> = isArabic ? { 'PORT SCAN': 'فحص المنافذ', 'VULN SWEEP': 'فحص الثغرات', 'SHODAN IOT': 'أجهزة Shodan', 'BGP ROUTE': 'مسار BGP', 'MAC ADDR': 'عنوان MAC', 'IP SWEEP': 'مسح IP', DNS: 'سجلات DNS', WHOIS: 'ملكية WHOIS', CERTS: 'الشهادات', 'SSL/TLS': 'صحة SSL/TLS', SUBDOMAINS: 'النطاقات الفرعية', HEADERS: 'رؤوس الأمان', 'TECH DETECT': 'كشف التقنية', USERNAME: 'بحث اسم المستخدم', 'GITHUB RECON': 'استطلاع GitHub', 'PHONE INTEL': 'معلومات الهاتف', THREATS: 'التهديدات', 'DATA LEAKS': 'تسريبات البيانات', INFOSTEALER: 'برمجيات السرقة', 'CHAIN INTEL': 'استخبارات السلسلة' } : {};
+  const toolLabel = (label: string) => toolLabels[label] || label;
   const [activeTab, setActiveTab] = useState('scanner');
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [query, setQuery] = useState('');
@@ -1234,7 +1238,7 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
         <input
           value={toolFilter}
           onChange={e => setToolFilter(e.target.value)}
-          placeholder="Filter tools…"
+          placeholder={isArabic ? 'تصفية الأدوات…' : 'Filter tools…'}
           className="w-full bg-[var(--bg-primary)]/60 border border-[var(--border-primary)] rounded-lg pl-8 pr-7 py-2 text-[10px] font-mono text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/40 focus:outline-none"
         />
         {toolFilter && (
@@ -1290,7 +1294,7 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
         })}
         {toolFilter && !TABS.some(matchesFilter) && (
           <div className="text-[11px] font-mono text-[var(--text-muted)] py-3 text-center">
-            No tool matches “{toolFilter}”.
+            {isArabic ? 'لا توجد أداة تطابق' : 'No tool matches'} “{toolFilter}”.
           </div>
         )}
       </div>
@@ -1304,7 +1308,7 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
         >
           <LocateFixed className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} style={{ color: '#00E676' }} />
           <span className="font-mono font-bold tracking-[0.1em] text-[11px]" style={{ color: '#00E676' }}>
-            {loading ? 'TRACKING…' : 'SELF TRACK'}
+            {loading ? (isArabic ? 'جارٍ التتبع…' : 'TRACKING…') : (isArabic ? 'تتبّع موقعي' : 'SELF TRACK')}
           </span>
         </button>
       </div>
@@ -1331,7 +1335,7 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
               >
                 <div className="flex items-center gap-3">
                   <tab.icon className="w-5 h-5" style={{ color: tab.color }} />
-                  <span className="font-mono font-bold tracking-[0.1em] text-[10px]" style={{ color: tab.color }}>GLOBAL SWEEP</span>
+                  <span className="font-mono font-bold tracking-[0.1em] text-[10px]" style={{ color: tab.color }}>{isArabic ? 'مسح شامل' : 'GLOBAL SWEEP'}</span>
                 </div>
             </button>
           ))}
@@ -1342,7 +1346,7 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
           >
             <div className="flex items-center gap-3">
               <LocateFixed className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} style={{ color: '#00E676' }} />
-              <span className="font-mono font-bold tracking-[0.1em] text-[10px]" style={{ color: '#00E676' }}>{loading ? 'TRACKING...' : 'SELF TRACK'}</span>
+              <span className="font-mono font-bold tracking-[0.1em] text-[10px]" style={{ color: '#00E676' }}>{loading ? (isArabic ? 'جارٍ التتبع...' : 'TRACKING...') : (isArabic ? 'تتبّع موقعي' : 'SELF TRACK')}</span>
             </div>
           </button>
         </div>
@@ -1354,7 +1358,7 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
             <input
               value={toolFilter}
               onChange={e => setToolFilter(e.target.value)}
-              placeholder="Filter tools…"
+              placeholder={isArabic ? 'تصفية الأدوات…' : 'Filter tools…'}
               className="w-full bg-[var(--bg-primary)]/60 border border-[var(--border-primary)] rounded-lg pl-7 pr-6 py-1.5 text-[10px] font-mono text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/40 focus:outline-none"
             />
             {toolFilter && (
@@ -1369,7 +1373,7 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
             if (!tools.length) return null;
             return (
               <div key={group.id} className="mb-2 last:mb-0">
-                <div className="text-[9px] font-mono tracking-[0.18em] text-[var(--text-muted)]/60 mb-1">{group.label}</div>
+                <div className="text-[9px] font-mono tracking-[0.18em] text-[var(--text-muted)]/60 mb-1">{groupLabels[group.id]}</div>
                 <div className="grid grid-cols-4 gap-1">
                   {tools.map(tab => (
                     <button key={tab.id} onClick={() => selectTool(tab.id)}
@@ -1377,7 +1381,7 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
                       className={`flex flex-col items-center gap-1 px-1 py-2 rounded-lg text-[9px] font-mono tracking-wider transition-all border ${activeTab === tab.id ? 'border-opacity-40 bg-opacity-15' : 'border-transparent hover:bg-[var(--hover-accent)]'}`}
                       style={{ borderColor: activeTab === tab.id ? tab.color : 'transparent', backgroundColor: activeTab === tab.id ? `${tab.color}15` : undefined, color: activeTab === tab.id ? tab.color : 'var(--text-muted)' }}>
                       <tab.icon className="w-3.5 h-3.5" />
-                      <span className="leading-tight text-center w-full">{tab.label}</span>
+                      <span className="leading-tight text-center w-full">{toolLabel(tab.label)}</span>
                     </button>
                   ))}
                 </div>
@@ -1387,7 +1391,7 @@ function OsintPanelInner({ isMobile, onSweepVisualize, onScanGeolocate }: OsintP
 
           {toolFilter && !TABS.some(t => t.id !== 'sweep' && matchesFilter(t)) && (
             <div className="text-[10px] font-mono text-[var(--text-muted)] py-2 text-center">
-              No tool matches “{toolFilter}”.
+              {isArabic ? 'لا توجد أداة تطابق' : 'No tool matches'} “{toolFilter}”.
             </div>
           )}
         </div>

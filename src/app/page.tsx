@@ -27,6 +27,7 @@ import SourceHealthPanel from '@/components/SourceHealthPanel';
 import AnalystWorkspace from '@/components/AnalystWorkspace';
 import CommandPalette, { type CommandId } from '@/components/CommandPalette';
 import IntelligenceModeBar, { type IntelligenceMode } from '@/components/IntelligenceModeBar';
+import WatchlistPanel from '@/components/WatchlistPanel';
 import LocaleSurface from '@/components/LocaleSurface';
 import OculixSoundscape from '@/components/OculixSoundscape';
 const OculixMap = dynamic(() => import('@/components/OculixMap'), { ssr: false });
@@ -244,6 +245,7 @@ export default function Dashboard() {
   const [showSettings, setShowSettings] = useState(false);
   const [showSourceHealth, setShowSourceHealth] = useState(false);
   const [showAnalyst, setShowAnalyst] = useState(false);
+  const [showWatchlists, setShowWatchlists] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [visualOptions, setVisualOptions] = useState({ reducedMotion: false, grid: true, scanlines: true, ticker: true, ambient: true });
@@ -878,7 +880,7 @@ export default function Dashboard() {
     news: data.news?.length || 0,
   }), [data.earthquakes, data.fires, data.satellites, data.news, totalFlights]);
   const runCommand = useCallback((command: CommandId) => {
-    const closePanels = () => { setShowIntel(false); setShowMarkets(false); setShowAlerts(false); setShowSpaceCam(false); setShowDrawing(false); setShowDesktopSearch(false); setShowDirections(false); setShowArcGIS(false); setShowRemote(false); };
+    const closePanels = () => { setShowIntel(false); setShowMarkets(false); setShowAlerts(false); setShowSpaceCam(false); setShowDrawing(false); setShowDesktopSearch(false); setShowDirections(false); setShowArcGIS(false); setShowRemote(false); setShowWatchlists(false); };
     switch (command) {
       case 'layers': setShowLayers(true); setMobilePanel('layers'); break;
       case 'search': closePanels(); setShowDesktopSearch(true); setMobilePanel('search'); break;
@@ -893,6 +895,7 @@ export default function Dashboard() {
       case 'settings': setShowSettings(true); break;
       case 'health': setShowSourceHealth(true); break;
       case 'analyst': setShowAnalyst(true); break;
+      case 'watchlists': setShowWatchlists(true); break;
       case 'globe': setMapProjection('globe'); break;
       case 'map': setMapProjection('mercator'); break;
     }
@@ -900,7 +903,7 @@ export default function Dashboard() {
 
 
   return (
-    <main className={`fixed inset-0 w-full h-full bg-[var(--bg-void)] overflow-hidden ${visualOptions.reducedMotion ? 'oculix-reduced-motion' : ''} ${visualOptions.grid ? '' : 'oculix-no-grid'} ${visualOptions.scanlines ? '' : 'oculix-no-scanlines'} ${visualOptions.ambient ? '' : 'oculix-no-ambient'}`}>
+    <main data-intelligence-mode={intelligenceMode} className={`fixed inset-0 w-full h-full bg-[var(--bg-void)] overflow-hidden oculix-mode-${intelligenceMode} ${visualOptions.reducedMotion ? 'oculix-reduced-motion' : ''} ${visualOptions.grid ? '' : 'oculix-no-grid'} ${visualOptions.scanlines ? '' : 'oculix-no-scanlines'} ${visualOptions.ambient ? '' : 'oculix-no-ambient'}`}>
       <PWAInstallPrompt language={language} />
       <LocaleSurface language={language} />
       <OculixSoundscape enabled={soundEnabled} />
@@ -923,6 +926,7 @@ export default function Dashboard() {
       />
       <SourceHealthPanel open={showSourceHealth} onClose={() => setShowSourceHealth(false)} language={language} />
       <AnalystWorkspace open={showAnalyst} onClose={() => setShowAnalyst(false)} language={language} metrics={analystMetrics} />
+      <WatchlistPanel open={showWatchlists} onClose={() => setShowWatchlists(false)} language={language} metrics={analystMetrics} />
       <CommandPalette open={showCommandPalette} onClose={() => setShowCommandPalette(false)} language={language} onRun={runCommand} />
 
       {/* ── SPLASH ── */}
@@ -1021,8 +1025,8 @@ export default function Dashboard() {
             </div>
 
             {/* ── OCULIX title — isolated LTR brand wordmark ── */}
-            <div dir="ltr" className="oculix-brand-wordmark flex items-center gap-[2px] mb-3 z-[2]" aria-label="OCULIX">
-              {'OCULIX'.split('').map((letter, i) => (
+            <div dir="ltr" className="oculix-brand-wordmark flex items-center gap-[2px] mb-3 z-[2]" aria-label="Oculix">
+              {'Oculix'.split('').map((letter, i) => (
                 <motion.span
                   key={i}
                   initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
@@ -1319,13 +1323,13 @@ export default function Dashboard() {
         <div dir="ltr" className="flex items-center gap-3 w-fit">
           <img className="oculix-header-mark" src="/oculix-icon.png" alt="OX" />
           <div className="flex flex-col items-start gap-0.5">
-            <h1 className="text-lg md:text-xl font-bold tracking-[0.4em] text-[#D4AF37] font-mono">OCULIX</h1>
-            <span className="text-[9px] md:text-[10px] font-mono tracking-[0.2em] opacity-80 uppercase text-[#D4AF37]">OPEN SOURCE INTELLIGENCE</span>
+            <h1 className="text-lg md:text-xl font-bold tracking-[0.4em] text-[#D4AF37] font-mono">Oculix</h1>
+            <span dir={language === 'ar' ? 'rtl' : 'ltr'} className="text-[9px] md:text-[10px] font-mono tracking-[0.2em] opacity-80 uppercase text-[#D4AF37]">{language === 'ar' ? 'استخبارات مفتوحة المصدر' : 'OPEN SOURCE INTELLIGENCE'}</span>
           </div>
         </div>
         <div className="flex items-center gap-3 mt-1.5 pl-[44px] min-w-0 pr-4">
           <span className="text-[9px] md:text-[9px] text-[var(--text-muted)] font-mono tracking-[0.2em] md:tracking-[0.3em] uppercase opacity-40 truncate">
-            REAL-TIME GLOBAL MONITORING <span className="hidden md:inline">· FLIGHTS · MARITIME · SATELLITES · CCTV · WEATHER · CYBER THREATS</span><span className="oculix-credit"> · MADE BY ABDULLAH QATAN</span>
+            {language === 'ar' ? 'مراقبة عالمية لحظية' : 'REAL-TIME GLOBAL MONITORING'} <span className="hidden md:inline">· {language === 'ar' ? 'طيران · ملاحة · أقمار · كاميرات · طقس · تهديدات سيبرانية' : 'FLIGHTS · MARITIME · SATELLITES · CCTV · WEATHER · CYBER THREATS'}</span><span className="oculix-credit"> · {language === 'ar' ? 'من صنع Abdullah Qatan' : 'MADE BY ABDULLAH QATAN'}</span>
           </span>
         </div>
       </motion.div>
@@ -1338,35 +1342,35 @@ export default function Dashboard() {
           <ZuluClock />
         </span>
 
-        <span className="flex items-center gap-1" title="Backend connection status">STATUS: <span className={backendStatus === 'connected' ? 'text-[var(--alert-green)]' : 'text-[var(--alert-red)]'}>{backendStatus === 'connected' ? 'LIVE' : backendStatus.toUpperCase()}</span></span>
+        <span className="flex items-center gap-1" title={language === 'ar' ? 'حالة اتصال الخادم' : 'Backend connection status'}>{language === 'ar' ? 'الحالة' : 'STATUS'}: <span className={backendStatus === 'connected' ? 'text-[var(--alert-green)]' : 'text-[var(--alert-red)]'}>{backendStatus === 'connected' ? 'LIVE' : backendStatus.toUpperCase()}</span></span>
 
         <span className="hidden lg:inline-flex items-center gap-1" title="Number of active data layers">
           <span className="text-[var(--cyan-primary)] font-bold">{Object.values(activeLayers).filter(Boolean).length}</span>
-          <span className="opacity-60">LAYERS</span>
+          <span className="opacity-60">{language === 'ar' ? 'طبقات' : 'LAYERS'}</span>
         </span>
 
         <span className="hidden lg:inline-flex items-center gap-1" title="Tracked entities on map">
           <ActiveEntityCount data={data} />
-          <span className="opacity-60">ENTITIES</span>
+          <span className="opacity-60">{language === 'ar' ? 'كيانات' : 'ENTITIES'}</span>
         </span>
 
         {spaceWeather && <span className="hidden lg:inline" title={`Geomagnetic Storm Index — Kp${spaceWeather.kp_index}`}>SOLAR: <span style={{ color: spaceWeather.storm_color, fontWeight: 700 }}>Kp{spaceWeather.kp_index}</span></span>}
 
         <span className="text-[11px] font-bold tracking-[0.2em] text-[var(--text-muted)] opacity-50">V.4.1</span>
         
-        <button type="button" onClick={() => setShowSettings(true)} className="pointer-events-auto glass-panel px-2.5 py-1.5 flex items-center gap-1.5 text-[9px] font-mono tracking-widest hover:opacity-80 transition-opacity border-[var(--cyan-primary)]/30 bg-[var(--cyan-primary)]/10" title="Settings" aria-label="Settings">
+        <button type="button" onClick={() => setShowSettings(true)} className="pointer-events-auto glass-panel px-2.5 py-1.5 flex items-center gap-1.5 text-[9px] font-mono tracking-widest hover:opacity-80 transition-opacity border-[var(--cyan-primary)]/30 bg-[var(--cyan-primary)]/10" title={language === 'ar' ? 'الإعدادات' : 'Settings'} aria-label={language === 'ar' ? 'الإعدادات' : 'Settings'}>
           <Settings2 className="w-3 h-3 text-[var(--cyan-primary)]" />
-          <span className="hidden sm:inline">SETTINGS</span>
+          <span className="hidden sm:inline">{language === 'ar' ? 'الإعدادات' : 'SETTINGS'}</span>
         </button>
-        <button type="button" onClick={() => setShowSourceHealth(true)} className="pointer-events-auto glass-panel px-2.5 py-1.5 flex items-center gap-1.5 text-[9px] font-mono tracking-widest hover:opacity-80 transition-opacity border-emerald-400/30 bg-emerald-400/10" title="Source Health" aria-label="Source Health">
+        <button type="button" onClick={() => setShowSourceHealth(true)} className="pointer-events-auto glass-panel px-2.5 py-1.5 flex items-center gap-1.5 text-[9px] font-mono tracking-widest hover:opacity-80 transition-opacity border-emerald-400/30 bg-emerald-400/10" title={language === 'ar' ? 'صحة المصادر' : 'Source Health'} aria-label={language === 'ar' ? 'صحة المصادر' : 'Source Health'}>
           <Activity className="w-3 h-3 text-emerald-300" />
-          <span className="hidden sm:inline">HEALTH</span>
+          <span className="hidden sm:inline">{language === 'ar' ? 'الصحة' : 'HEALTH'}</span>
         </button>
-        <button type="button" onClick={() => setShowAnalyst(true)} className="pointer-events-auto glass-panel px-2.5 py-1.5 flex items-center gap-1.5 text-[9px] font-mono tracking-widest hover:opacity-80 transition-opacity border-violet-400/30 bg-violet-400/10" title="Analyst Mode" aria-label="Analyst Mode">
+        <button type="button" onClick={() => setShowAnalyst(true)} className="pointer-events-auto glass-panel px-2.5 py-1.5 flex items-center gap-1.5 text-[9px] font-mono tracking-widest hover:opacity-80 transition-opacity border-violet-400/30 bg-violet-400/10" title={language === 'ar' ? 'وضع المحلل' : 'Analyst Mode'} aria-label={language === 'ar' ? 'وضع المحلل' : 'Analyst Mode'}>
           <Crosshair className="w-3 h-3 text-violet-300" />
-          <span className="hidden sm:inline">ANALYST</span>
+          <span className="hidden sm:inline">{language === 'ar' ? 'المحلل' : 'ANALYST'}</span>
         </button>
-        <button type="button" onClick={() => setShowCommandPalette(true)} className="pointer-events-auto glass-panel px-2 py-1.5 text-[9px] font-mono tracking-widest text-white/70 hover:text-white transition-colors" title="Command palette" aria-label="Command palette">⌘K</button>
+        <button type="button" onClick={() => setShowCommandPalette(true)} className="pointer-events-auto glass-panel px-2 py-1.5 text-[9px] font-mono tracking-widest text-white/70 hover:text-white transition-colors" title={language === 'ar' ? 'مركز الأوامر' : 'Command palette'} aria-label={language === 'ar' ? 'مركز الأوامر' : 'Command palette'}>⌘K</button>
 
       </motion.div>
 
@@ -1374,10 +1378,10 @@ export default function Dashboard() {
       {/* The compact controls stay clear of the route planner on phone screens. */}
       {isMobile && !showDirections && !navSession && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.5 }} className="absolute top-3 right-3 z-[200] pointer-events-auto flex items-center gap-2">
-          <button type="button" onClick={() => setShowSettings(true)} className="glass-panel p-1.5 border border-[var(--cyan-primary)]/30 bg-[var(--cyan-primary)]/10" title="Settings" aria-label="Settings"><Settings2 className="w-3.5 h-3.5 text-[var(--cyan-primary)]" /></button>
-          <button type="button" onClick={() => setShowSourceHealth(true)} className="glass-panel p-1.5 border border-emerald-400/30 bg-emerald-400/10" title="Source Health" aria-label="Source Health"><Activity className="w-3.5 h-3.5 text-emerald-300" /></button>
-          <button type="button" onClick={() => setShowAnalyst(true)} className="glass-panel p-1.5 border border-violet-400/30 bg-violet-400/10" title="Analyst Mode" aria-label="Analyst Mode"><Crosshair className="w-3.5 h-3.5 text-violet-300" /></button>
-          <button type="button" onClick={() => setShowCommandPalette(true)} className="glass-panel px-1.5 py-1 text-[9px] font-mono text-white/70" title="Command palette" aria-label="Command palette">⌘K</button>
+          <button type="button" onClick={() => setShowSettings(true)} className="glass-panel p-1.5 border border-[var(--cyan-primary)]/30 bg-[var(--cyan-primary)]/10" title={language === 'ar' ? 'الإعدادات' : 'Settings'} aria-label={language === 'ar' ? 'الإعدادات' : 'Settings'}><Settings2 className="w-3.5 h-3.5 text-[var(--cyan-primary)]" /></button>
+          <button type="button" onClick={() => setShowSourceHealth(true)} className="glass-panel p-1.5 border border-emerald-400/30 bg-emerald-400/10" title={language === 'ar' ? 'صحة المصادر' : 'Source Health'} aria-label={language === 'ar' ? 'صحة المصادر' : 'Source Health'}><Activity className="w-3.5 h-3.5 text-emerald-300" /></button>
+          <button type="button" onClick={() => setShowAnalyst(true)} className="glass-panel p-1.5 border border-violet-400/30 bg-violet-400/10" title={language === 'ar' ? 'وضع المحلل' : 'Analyst Mode'} aria-label={language === 'ar' ? 'وضع المحلل' : 'Analyst Mode'}><Crosshair className="w-3.5 h-3.5 text-violet-300" /></button>
+          <button type="button" onClick={() => setShowCommandPalette(true)} className="glass-panel px-1.5 py-1 text-[9px] font-mono text-white/70" title={language === 'ar' ? 'مركز الأوامر' : 'Command palette'} aria-label={language === 'ar' ? 'مركز الأوامر' : 'Command palette'}>⌘K</button>
 
         </motion.div>
       )}
@@ -1405,7 +1409,7 @@ export default function Dashboard() {
           <AnimatePresence>
             {showIntel && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="absolute right-12 top-1/2 -translate-y-1/2 w-80">
-                <OsintPanel onSweepVisualize={setSweepData} onScanGeolocate={(target, data) => {
+                <OsintPanel language={language} onSweepVisualize={setSweepData} onScanGeolocate={(target, data) => {
                   setScanTargets(prev => {
                     const existing = prev.filter(t => t.id !== target);
                     return [{ id: target, timestamp: Date.now(), ...data }, ...existing].slice(0, 10);
@@ -1747,7 +1751,7 @@ export default function Dashboard() {
                 <div className="px-3 pb-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="hud-text text-[10px] text-[var(--text-primary)]">
-                      {mobilePanel === 'layers' ? 'LAYERS & STATS' : mobilePanel === 'markets' ? 'MARKETS & INTEL' : mobilePanel === 'intel' ? 'INTEL FEED' : mobilePanel === 'recon' ? 'OCULIX RECON' : mobilePanel === 'remote' ? 'WORLD REMOTE' : 'SEARCH'}
+                      {language === 'ar' ? (mobilePanel === 'layers' ? 'الطبقات والإحصاءات' : mobilePanel === 'markets' ? 'الأسواق والاستخبارات' : mobilePanel === 'intel' ? 'موجز المعلومات' : mobilePanel === 'recon' ? 'استطلاع Oculix' : mobilePanel === 'remote' ? 'التحكم البعيد' : 'البحث') : (mobilePanel === 'layers' ? 'LAYERS & STATS' : mobilePanel === 'markets' ? 'MARKETS & INTEL' : mobilePanel === 'intel' ? 'INTEL FEED' : mobilePanel === 'recon' ? 'OCULIX RECON' : mobilePanel === 'remote' ? 'WORLD REMOTE' : 'SEARCH')}
                     </span>
                     <button onClick={() => setMobilePanel(null)} className="text-[var(--text-muted)] p-1"><X className="w-4 h-4" /></button>
                   </div>
@@ -1755,11 +1759,11 @@ export default function Dashboard() {
                     <>
                       <div className="glass-panel-sm p-2 mb-2">
                         <div className="grid grid-cols-5 gap-1 text-center">
-                          <div><div className="hud-label" style={{fontSize:'9px'}}>AIR</div><div className="hud-value text-[10px]">{totalFlights.toLocaleString()}</div></div>
-                          <div><div className="hud-label" style={{fontSize:'9px'}}>SAT</div><div className="hud-value text-[10px]">{(data.satellites?.length||0)}</div></div>
-                          <div><div className="hud-label" style={{fontSize:'9px'}}>CAM</div><div className="hud-value text-[10px]">{(data.cameras?.length||0)}</div></div>
-                          <div><div className="hud-label" style={{fontSize:'9px'}}>WX</div><div className="hud-value text-[10px]" style={{color:'var(--accent-weather)'}}>{(data.weather_events?.length||0)}</div></div>
-                          <div><div className="hud-label" style={{fontSize:'9px'}}>NUC</div><div className="hud-value text-[10px]" style={{color:'var(--accent-nuclear)'}}>{(data.infrastructure?.length||0)}</div></div>
+                          <div><div className="hud-label" style={{fontSize:'9px'}} title={language === 'ar' ? 'الطيران' : 'Aircraft'}>{language === 'ar' ? 'جوي' : 'AIR'}</div><div className="hud-value text-[10px]">{totalFlights.toLocaleString()}</div></div>
+                          <div><div className="hud-label" style={{fontSize:'9px'}} title={language === 'ar' ? 'الأقمار الصناعية' : 'Satellites'}>{language === 'ar' ? 'أقمار' : 'SAT'}</div><div className="hud-value text-[10px]">{(data.satellites?.length||0)}</div></div>
+                          <div><div className="hud-label" style={{fontSize:'9px'}} title={language === 'ar' ? 'الكاميرات' : 'Cameras'}>{language === 'ar' ? 'كام' : 'CAM'}</div><div className="hud-value text-[10px]">{(data.cameras?.length||0)}</div></div>
+                          <div><div className="hud-label" style={{fontSize:'9px'}} title={language === 'ar' ? 'الطقس' : 'Weather'}>{language === 'ar' ? 'طقس' : 'WX'}</div><div className="hud-value text-[10px]" style={{color:'var(--accent-weather)'}}>{(data.weather_events?.length||0)}</div></div>
+                          <div><div className="hud-label" style={{fontSize:'9px'}} title={language === 'ar' ? 'البنية التحتية النووية' : 'Nuclear infrastructure'}>{language === 'ar' ? 'نووي' : 'NUC'}</div><div className="hud-value text-[10px]" style={{color:'var(--accent-nuclear)'}}>{(data.infrastructure?.length||0)}</div></div>
                         </div>
                       </div>
                       <LayerPanel data={data} activeLayers={activeLayers} setActiveLayers={setActiveLayers} isMobile={true} theme={oculixTheme} setTheme={setOculixTheme} capabilities={capabilities} />
@@ -1769,7 +1773,7 @@ export default function Dashboard() {
                     </>
                   )}
                   {mobilePanel === 'markets' && <MarketsPanel data={data} spaceWeather={spaceWeather} />}
-                  {mobilePanel === 'intel' && <IntelFeed data={data} onLocate={(lat, lng) => { setFlyToLocation({ lat, lng, ts: Date.now() }); setMobilePanel(null); }} />}
+                  {mobilePanel === 'intel' && <IntelFeed language={language} data={data} onLocate={(lat, lng) => { setFlyToLocation({ lat, lng, ts: Date.now() }); setMobilePanel(null); }} />}
                   {mobilePanel === 'search' && (
                     <div className="space-y-2">
                       <SearchBar onLocate={(lat, lng, zoom) => { setFlyToLocation({ lat, lng, zoom, ts: Date.now() }); setMobilePanel(null); }} />
@@ -1778,7 +1782,7 @@ export default function Dashboard() {
                   )}
                   {mobilePanel === 'recon' && (
                     <div className="space-y-2">
-                      <OsintPanel isOpen={true} onClose={() => setMobilePanel(null)} isMobile={true} onSweepVisualize={setSweepData} />
+                      <OsintPanel language={language} isOpen={true} onClose={() => setMobilePanel(null)} isMobile={true} onSweepVisualize={setSweepData} />
                     </div>
                   )}
                   {mobilePanel === 'remote' && (

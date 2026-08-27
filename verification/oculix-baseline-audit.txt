@@ -1,0 +1,24 @@
+=== baseline files missing from worktree ===
+[src/components]
+[src/app/api]
+[src/lib]
+=== worktree additions ===
+[src/components]
+src/components/AnalystWorkspace.tsx
+src/components/CommandPalette.tsx
+src/components/IntelligenceModeBar.tsx
+src/components/LocaleSurface.tsx
+src/components/OculixSoundscape.tsx
+src/components/SettingsPanel.tsx
+src/components/SourceHealthPanel.tsx
+src/components/WatchlistPanel.tsx
+[src/app/api]
+src/app/api/health/sources/route.ts
+[src/lib]
+src/lib/auditLog.test.ts
+src/lib/auditLog.ts
+src/lib/sourceHealth.test.ts
+src/lib/sourceHealth.ts
+src/lib/theme.ts
+=== project status ===
+not a git worktree

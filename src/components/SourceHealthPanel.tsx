@@ -14,10 +14,10 @@ interface SourceHealthPanelProps {
 
 const copy = {
   ar: {
-    title: 'مركز صحة المصادر', subtitle: 'مراقبة حداثة البيانات وموثوقية الاتصالات', refresh: 'تحديث', close: 'إغلاق', empty: 'لم تُسجّل مصادر بعد. افتح طبقة أو مصدراً حياً لتظهر قياساته هنا.', source: 'المصدر', status: 'الحالة', latency: 'الزمن', updated: 'آخر تحديث', errors: 'الأخطاء', reliability: 'الموثوقية', live: 'مباشر', stale: 'متقادم', degraded: 'متدهور', offline: 'متوقف', unknown: 'غير معروف', ago: 'منذ', seconds: 'ث', minutes: 'د', hours: 'س', cache: 'إصابات الكاش', items: 'العناصر', note: 'الفشل في مصدر واحد لا يوقف بقية المنصة؛ تُعرض آخر بيانات صالحة عند توفرها.', unavailable: 'غير متاح',
+    title: 'مركز صحة المصادر', kicker: 'صحة المصادر', subtitle: 'مراقبة حداثة البيانات وموثوقية الاتصالات', refresh: 'تحديث', close: 'إغلاق', empty: 'لم تُسجّل مصادر بعد. افتح طبقة أو مصدراً حياً لتظهر قياساته هنا.', source: 'المصدر', status: 'الحالة', latency: 'الزمن', updated: 'آخر تحديث', errors: 'الأخطاء', reliability: 'الموثوقية', live: 'مباشر', stale: 'متقادم', degraded: 'متدهور', offline: 'متوقف', unknown: 'غير معروف', ago: 'منذ', seconds: 'ث', minutes: 'د', hours: 'س', cache: 'إصابات الكاش', items: 'العناصر', note: 'الفشل في مصدر واحد لا يوقف بقية المنصة؛ تُعرض آخر بيانات صالحة عند توفرها.', unavailable: 'غير متاح',
   },
   en: {
-    title: 'Source Health Center', subtitle: 'Freshness and reliability monitoring', refresh: 'Refresh', close: 'Close', empty: 'No sources recorded yet. Open a live layer or source to populate this center.', source: 'Source', status: 'Status', latency: 'Latency', updated: 'Last update', errors: 'Errors', reliability: 'Reliability', live: 'Live', stale: 'Stale', degraded: 'Degraded', offline: 'Offline', unknown: 'Unknown', ago: 'ago', seconds: 's', minutes: 'm', hours: 'h', cache: 'Cache hits', items: 'Items', note: 'One source failure does not stop the platform; the last good data is served when available.', unavailable: 'Unavailable',
+    title: 'Source Health Center', kicker: 'SOURCE HEALTH', subtitle: 'Freshness and reliability monitoring', refresh: 'Refresh', close: 'Close', empty: 'No sources recorded yet. Open a live layer or source to populate this center.', source: 'Source', status: 'Status', latency: 'Latency', updated: 'Last update', errors: 'Errors', reliability: 'Reliability', live: 'Live', stale: 'Stale', degraded: 'Degraded', offline: 'Offline', unknown: 'Unknown', ago: 'ago', seconds: 's', minutes: 'm', hours: 'h', cache: 'Cache hits', items: 'Items', note: 'One source failure does not stop the platform; the last good data is served when available.', unavailable: 'Unavailable',
   },
 } as const;
 
@@ -78,7 +78,7 @@ export default function SourceHealthPanel({ open, onClose, language }: SourceHea
   return (
     <aside className="oculix-source-health-panel" dir={language === 'ar' ? 'rtl' : 'ltr'} aria-label={t.title}>
       <header className="oculix-source-health-header">
-        <div><div className="oculix-kicker"><Activity size={13} /> SOURCE HEALTH</div><h2>{t.title}</h2><p>{t.subtitle}</p></div>
+        <div><div className="oculix-kicker"><Activity size={13} /> {t.kicker}</div><h2>{t.title}</h2><p>{t.subtitle}</p></div>
         <div className="oculix-source-health-actions"><button type="button" onClick={() => void load()} disabled={loading} title={t.refresh} aria-label={t.refresh}><RefreshCw size={14} className={loading ? 'animate-spin' : ''} /></button><button type="button" onClick={onClose} title={t.close} aria-label={t.close}><X size={16} /></button></div>
       </header>
       <div className="oculix-source-health-summary"><span className="source-health-chip source-health-chip--live">{summary.live} {t.live}</span><span className="source-health-chip source-health-chip--degraded">{summary.degraded} {t.degraded}</span><span className="source-health-chip source-health-chip--stale">{summary.stale} {t.stale}</span><span className="source-health-chip source-health-chip--offline">{summary.offline} {t.offline}</span></div>

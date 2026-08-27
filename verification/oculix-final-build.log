@@ -2,19 +2,24 @@
 > oculix@0.1.0 build
 > next build
 
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
 ▲ Next.js 16.2.6 (Turbopack)
 
 ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
   Creating an optimized production build ...
-✓ Compiled successfully in 10.5s
+✓ Compiled successfully in 9.6s
   Running TypeScript ...
-  Finished TypeScript in 14.9s ...
+  Finished TypeScript in 13.4s ...
   Collecting page data using 5 workers ...
   Generating static pages using 5 workers (0/56) ...
   Generating static pages using 5 workers (14/56) 
   Generating static pages using 5 workers (28/56) 
   Generating static pages using 5 workers (42/56) 
-✓ Generating static pages using 5 workers (56/56) in 420ms
+✓ Generating static pages using 5 workers (56/56) in 435ms
   Finalizing page optimization ...
 
 Route (app)
@@ -51,6 +56,7 @@ Route (app)
 ├ ƒ /api/geosearch
 ├ ƒ /api/github-webhook
 ├ ƒ /api/health
+├ ƒ /api/health/sources
 ├ ƒ /api/infrastructure
 ├ ƒ /api/live-news
 ├ ƒ /api/malware
