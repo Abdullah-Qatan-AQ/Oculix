@@ -1,0 +1,99 @@
+
+> oculix@0.1.0 build
+> next build
+
+▲ Next.js 16.2.6 (Turbopack)
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 9.6s
+  Running TypeScript ...
+  Finished TypeScript in 14.0s ...
+  Collecting page data using 5 workers ...
+  Generating static pages using 5 workers (0/56) ...
+  Generating static pages using 5 workers (14/56) 
+  Generating static pages using 5 workers (28/56) 
+  Generating static pages using 5 workers (42/56) 
+✓ Generating static pages using 5 workers (56/56) in 406ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/ai/analyze
+├ ƒ /api/ai/briefing
+├ ƒ /api/ai/overview
+├ ƒ /api/air-quality
+├ ƒ /api/aircraft
+├ ƒ /api/arcgis
+├ ƒ /api/astra
+├ ƒ /api/cctv
+├ ƒ /api/cctv/proxy
+├ ƒ /api/cctv/resolve
+├ ƒ /api/cctv/stream-status
+├ ƒ /api/chain/daily
+├ ƒ /api/cloudflare-radar
+├ ƒ /api/conflicts
+├ ƒ /api/country-risk
+├ ƒ /api/crypto
+├ ƒ /api/cyber-attacks
+├ ƒ /api/cyber-threats
+├ ƒ /api/directions
+├ ƒ /api/earthquakes
+├ ƒ /api/entity/expand
+├ ƒ /api/fires
+├ ƒ /api/flight-route
+├ ƒ /api/flights
+├ ƒ /api/frontlines
+├ ƒ /api/gdelt
+├ ƒ /api/gdelt-events
+├ ƒ /api/geo
+├ ƒ /api/geosearch
+├ ƒ /api/github-webhook
+├ ƒ /api/health
+├ ƒ /api/health/sources
+├ ƒ /api/infrastructure
+├ ƒ /api/live-news
+├ ƒ /api/malware
+├ ƒ /api/maritime
+├ ƒ /api/markets
+├ ƒ /api/markets/history
+├ ƒ /api/news
+├ ƒ /api/osint/bgp
+├ ƒ /api/osint/certs
+├ ƒ /api/osint/crypto
+├ ƒ /api/osint/cve
+├ ƒ /api/osint/dns
+├ ƒ /api/osint/github
+├ ƒ /api/osint/hudsonrock
+├ ƒ /api/osint/ip
+├ ƒ /api/osint/leaks
+├ ƒ /api/osint/mac
+├ ƒ /api/osint/phone
+├ ƒ /api/osint/sanctions
+├ ƒ /api/osint/shodan
+├ ƒ /api/osint/sweep
+├ ƒ /api/osint/threats
+├ ƒ /api/osint/username
+├ ƒ /api/osint/whois
+├ ƒ /api/proxy-tiles
+├ ƒ /api/radar
+├ ƒ /api/region-dossier
+├ ƒ /api/satellites
+├ ƒ /api/satellites/orbit
+├ ƒ /api/scanner
+├ ƒ /api/scm-suppliers
+├ ƒ /api/sdk/ingest
+├ ƒ /api/sdk/stream
+├ ƒ /api/sentinel
+├ ƒ /api/space-weather
+├ ƒ /api/stats
+├ ƒ /api/weather
+└ ○ /docs
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

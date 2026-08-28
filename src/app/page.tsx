@@ -968,8 +968,9 @@ export default function Dashboard() {
 
 
   return (
-    <main data-intelligence-mode={intelligenceMode} className={`fixed inset-0 w-full h-full bg-[var(--bg-void)] overflow-hidden oculix-mode-${intelligenceMode} ${visualOptions.reducedMotion ? 'oculix-reduced-motion' : ''} ${visualOptions.grid ? '' : 'oculix-no-grid'} ${visualOptions.scanlines ? '' : 'oculix-no-scanlines'} ${visualOptions.ambient ? '' : 'oculix-no-ambient'}`}>
-      <PWAInstallPrompt language={componentLanguage} />
+    <main data-intelligence-mode={intelligenceMode} className={`fixed inset-0 w-full h-full overflow-hidden oculix-app background-${background} oculix-mode-${intelligenceMode} ${visualOptions.reducedMotion ? 'oculix-reduced-motion' : ''} ${visualOptions.grid ? '' : 'oculix-no-grid'} ${visualOptions.scanlines ? '' : 'oculix-no-scanlines'} ${visualOptions.ambient ? '' : 'oculix-no-ambient'}`}>
+      <div className={`oculix-background-layer background-${background}`} aria-hidden="true" />
+      <PWAInstallPrompt language={language} />
       <LocaleSurface language={language} />
       <OculixSoundscape enabled={soundEnabled} />
       {visualOptions.ambient && <div className="oculix-ambient-field" aria-hidden="true" />}
@@ -1229,7 +1230,7 @@ export default function Dashboard() {
           aircraftAirports={aircraftAirports}
         />
       </ErrorBoundary>
-      <IntelligenceModeBar language={componentLanguage} mode={intelligenceMode} onModeChange={setIntelligenceMode} timeCursor={timeCursor} onTimeChange={setTimeCursor} />
+      <IntelligenceModeBar language={language} mode={intelligenceMode} onModeChange={setIntelligenceMode} timeCursor={timeCursor} onTimeChange={setTimeCursor} />
 
       {/* ── DIRECTIONS — opens beside the right-hand tool rail ── */}
       <div

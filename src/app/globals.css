@@ -3003,3 +3003,31 @@ body.background-ocean { background: linear-gradient(165deg, rgba(var(--cyan-rgb)
 
 /* Mobile focus surface: lift the large intelligence rectangle slightly without covering the browser safe area. */
 @media (max-width: 768px) { .oculix-mode-bar { top: 3.18rem; } }
+
+
+/* Visible PWA install control and browser fallback guidance. */
+.pwa-install-access { position: fixed; z-index: 850; inset-inline-end: 18px; bottom: 18px; display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 9px 13px; color: #041115; background: var(--cyan-primary, #75F6CF); border: 1px solid color-mix(in srgb, var(--cyan-primary, #75F6CF) 70%, white); border-radius: 11px; box-shadow: 0 12px 32px rgba(0,0,0,.32), 0 0 18px color-mix(in srgb, var(--cyan-primary, #75F6CF) 18%, transparent); font-size: 11px; font-weight: 800; cursor: pointer; }
+.pwa-install-access:hover { transform: translateY(-1px); box-shadow: 0 16px 38px rgba(0,0,0,.38), 0 0 24px color-mix(in srgb, var(--cyan-primary, #75F6CF) 28%, transparent); }
+.pwa-install-access--quiet { color: var(--cyan-primary); background: color-mix(in srgb, var(--bg-panel) 92%, transparent); border-color: color-mix(in srgb, var(--cyan-primary) 34%, transparent); }
+.pwa-installed-badge { display: inline-flex; align-items: center; gap: 5px; color: var(--cyan-primary); font-size: 10px; }
+.pwa-install-help-backdrop { position: fixed; z-index: 900; inset: 0; display: grid; place-items: center; padding: 18px; background: rgba(0,3,8,.62); backdrop-filter: blur(8px); }
+.pwa-install-help { width: min(390px, 100%); padding: 16px; color: var(--text-primary); background: var(--bg-panel-solid, #071a23); border: 1px solid var(--border-active); border-radius: 15px; box-shadow: 0 24px 70px rgba(0,0,0,.52); }
+.pwa-install-help-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--text-heading); }
+.pwa-install-help-head strong { display: inline-flex; align-items: center; gap: 7px; }
+.pwa-install-help-head button { display: grid; place-items: center; width: 28px; height: 28px; color: var(--text-muted); background: transparent; border: 0; }
+.pwa-install-help p { margin: 12px 0 15px; color: var(--text-secondary); font-size: 12px; line-height: 1.8; }
+.oculix-app { background: var(--bg-void); }
+.oculix-background-layer { position: absolute; z-index: 1; inset: 0; pointer-events: none; opacity: .42; mix-blend-mode: screen; }
+.oculix-background-layer.background-void { background: var(--bg-void); opacity: 0; }
+.oculix-background-layer.background-aurora { background: radial-gradient(circle at 18% 20%, rgba(var(--cyan-rgb), .24), transparent 34%), radial-gradient(circle at 82% 78%, rgba(var(--gold-rgb), .12), transparent 38%); }
+.oculix-background-layer.background-topography { background-image: repeating-linear-gradient(18deg, transparent 0 38px, rgba(var(--cyan-rgb), .1) 39px 40px, transparent 41px 78px), repeating-linear-gradient(108deg, transparent 0 68px, rgba(var(--gold-rgb), .08) 69px 70px, transparent 71px 136px); }
+.oculix-background-layer.background-radar { background-image: radial-gradient(circle at 50% 50%, transparent 0 21%, rgba(var(--cyan-rgb), .12) 21.2% 21.4%, transparent 21.6% 42%, rgba(var(--cyan-rgb), .08) 42.2% 42.4%, transparent 42.6%), conic-gradient(from 25deg at 50% 50%, transparent 0 12%, rgba(var(--cyan-rgb), .16) 12.5% 13%, transparent 13.5% 100%); }
+.oculix-background-layer.background-solar { background: radial-gradient(ellipse at 72% 18%, rgba(255, 160, 50, .26), transparent 30%), radial-gradient(ellipse at 20% 80%, rgba(var(--gold-rgb), .14), transparent 36%); }
+.oculix-background-layer.background-ocean { background-image: linear-gradient(165deg, rgba(var(--cyan-rgb), .15), transparent 40%), repeating-linear-gradient(170deg, transparent 0 22px, rgba(var(--cyan-rgb), .08) 23px 24px, transparent 25px 52px); }
+@media (max-width: 768px) {
+  .pwa-install-access { inset-inline: 12px; bottom: 80px; justify-content: center; min-height: 42px; }
+  .oculix-mode-bar { top: 3.08rem; padding: .3rem .42rem; gap: .24rem; }
+  .oculix-time-control { gap: .25rem; font-size: .5rem; }
+  .oculix-time-control input { min-height: 16px; height: 16px; }
+  .oculix-time-control button { padding: .17rem .32rem; font-size: .5rem; }
+}

@@ -39,20 +39,36 @@ const copy = {
   },
 } as const;
 
-const themeOptions: Array<{ id: OculixTheme; ar: string; en: string }> = [
-  { id: 'core', ar: 'جوهر Oculix', en: 'Oculix Core' },
-  { id: 'ghost', ar: 'بروتوكول الشبح', en: 'Ghost Protocol' },
-  { id: 'aurora', ar: 'إشارة الشفق', en: 'Aurora Signal' },
-  { id: 'ember', ar: 'مركز الجمر', en: 'Ember Command' },
-  { id: 'oceanic', ar: 'المحيط العميق', en: 'Deep Ocean' },
-  { id: 'solar', ar: 'العاصفة الشمسية', en: 'Solar Storm' },
-  { id: 'terminal', ar: 'المحطة الخضراء', en: 'Green Terminal' },
-  { id: 'rose', ar: 'الوهج القرمزي', en: 'Crimson Rose' },
+const localizedCopy = {
+  ...copy,
+  es: { ...copy.en, title: 'Ajustes de Oculix', eyebrow: 'OX / PANEL DE CONTROL', subtitle: 'Control total de la vista — no se elimina ninguna función', appearance: 'Apariencia e identidad', language: 'Idioma de la interfaz', theme: 'Tema', audio: 'Sonido', enabled: 'Activado', disabled: 'Desactivado', workspace: 'Espacio de trabajo', reset: 'Restablecer vista', close: 'Cerrar', visible: 'Visible', hidden: 'Oculto', note: 'La visibilidad solo cambia la vista; todas las herramientas permanecen disponibles.', motion: 'Movimiento', reduced: 'Reducido', effects: 'Efectos visuales', grid: 'Cuadrícula', scanlines: 'Líneas de barrido', ticker: 'Ticker de estado', ambient: 'Campo ambiental', pwa: 'Aplicación instalable', installed: 'Instalada en este dispositivo', browser: 'Ejecutándose en el navegador', rights: 'Creado por Abdullah Qatan', guide: 'Cómo usar la plataforma', guideIntro: 'Guía práctica para entender el mapa, las capas y las herramientas de análisis.' },
+  fr: { ...copy.en, title: 'Paramètres Oculix', eyebrow: 'OX / CENTRE DE CONTRÔLE', subtitle: 'Contrôle complet de l’affichage — aucune fonction n’est supprimée', appearance: 'Apparence et identité', language: 'Langue de l’interface', theme: 'Thème', audio: 'Retour sonore', enabled: 'Activé', disabled: 'Désactivé', workspace: 'Espace de travail', reset: 'Réinitialiser la vue', close: 'Fermer', visible: 'Visible', hidden: 'Masqué', note: 'La visibilité modifie seulement l’affichage ; tous les outils restent disponibles.', motion: 'Mouvement', reduced: 'Réduit', effects: 'Effets visuels', grid: 'Grille', scanlines: 'Lignes de balayage', ticker: 'Fil d’état', ambient: 'Champ ambiant', pwa: 'Application installable', installed: 'Installée sur cet appareil', browser: 'Exécution dans le navigateur', rights: 'Créé par Abdullah Qatan', guide: 'Comment utiliser la plateforme', guideIntro: 'Guide pratique de la carte, des couches et des outils d’analyse.' },
+  de: { ...copy.en, title: 'Oculix-Einstellungen', eyebrow: 'OX / KONTROLLZENTRUM', subtitle: 'Volle Anzeigesteuerung — keine Funktion wird gelöscht', appearance: 'Erscheinungsbild und Identität', language: 'Oberflächensprache', theme: 'Design', audio: 'Soundfeedback', enabled: 'Aktiv', disabled: 'Deaktiviert', workspace: 'Arbeitsbereich', reset: 'Ansicht zurücksetzen', close: 'Schließen', visible: 'Sichtbar', hidden: 'Ausgeblendet', note: 'Die Sichtbarkeit ändert nur die Ansicht; alle Werkzeuge bleiben verfügbar.', motion: 'Bewegung', reduced: 'Reduziert', effects: 'Visuelle Effekte', grid: 'Raster', scanlines: 'Scanlinien', ticker: 'Statusleiste', ambient: 'Umgebungsfeld', pwa: 'Installierbare App', installed: 'Auf diesem Gerät installiert', browser: 'Im Browser ausgeführt', rights: 'Erstellt von Abdullah Qatan', guide: 'So verwendest du die Plattform', guideIntro: 'Praktischer Leitfaden für Karte, Ebenen und Analysewerkzeuge.' },
+  tr: { ...copy.en, title: 'Oculix Ayarları', eyebrow: 'OX / KONTROL MERKEZİ', subtitle: 'Tam görünüm kontrolü — hiçbir özellik silinmez', appearance: 'Görünüm ve kimlik', language: 'Arayüz dili', theme: 'Tema', audio: 'Ses geri bildirimi', enabled: 'Etkin', disabled: 'Devre dışı', workspace: 'Çalışma alanı', reset: 'Görünümü sıfırla', close: 'Kapat', visible: 'Görünür', hidden: 'Gizli', note: 'Görünürlük yalnızca ekranı değiştirir; tüm araçlar kullanılabilir kalır.', motion: 'Hareket', reduced: 'Azaltılmış', effects: 'Görsel efektler', grid: 'Izgara', scanlines: 'Tarama çizgileri', ticker: 'Durum akışı', ambient: 'Ortam alanı', pwa: 'Yüklenebilir uygulama', installed: 'Bu cihaza yüklendi', browser: 'Tarayıcıda çalışıyor', rights: 'Abdullah Qatan tarafından yapıldı', guide: 'Platform nasıl kullanılır', guideIntro: 'Harita, katmanlar ve analiz araçları için pratik rehber.' },
+} as const;
+
+const themeOptions: Array<{ id: OculixTheme; ar: string; en: string; es: string; fr: string; de: string; tr: string }> = [
+  { id: 'core', ar: 'جوهر Oculix', en: 'Oculix Core', es: 'Núcleo Oculix', fr: 'Cœur Oculix', de: 'Oculix-Kern', tr: 'Oculix özü' },
+  { id: 'ghost', ar: 'بروتوكول الشبح', en: 'Ghost Protocol', es: 'Protocolo fantasma', fr: 'Protocole fantôme', de: 'Geisterprotokoll', tr: 'Hayalet protokolü' },
+  { id: 'aurora', ar: 'إشارة الشفق', en: 'Aurora Signal', es: 'Señal aurora', fr: 'Signal auroral', de: 'Aurora-Signal', tr: 'Aurora sinyali' },
+  { id: 'ember', ar: 'مركز الجمر', en: 'Ember Command', es: 'Centro de brasas', fr: 'Centre braise', de: 'Glut-Zentrale', tr: 'Kor komuta' },
+  { id: 'oceanic', ar: 'المحيط العميق', en: 'Deep Ocean', es: 'Océano profundo', fr: 'Océan profond', de: 'Tiefer Ozean', tr: 'Derin okyanus' },
+  { id: 'solar', ar: 'العاصفة الشمسية', en: 'Solar Storm', es: 'Tormenta solar', fr: 'Tempête solaire', de: 'Sonnensturm', tr: 'Güneş fırtınası' },
+  { id: 'terminal', ar: 'المحطة الخضراء', en: 'Green Terminal', es: 'Terminal verde', fr: 'Terminal vert', de: 'Grünes Terminal', tr: 'Yeşil terminal' },
+  { id: 'rose', ar: 'الوهج القرمزي', en: 'Crimson Rose', es: 'Rosa carmesí', fr: 'Rose cramoisie', de: 'Karmesinrote Rose', tr: 'Kızıl gül' },
 ];
 
 const panelLabels = {
   ar: { layers: 'الطبقات', markets: 'الأسواق', alerts: 'التنبيهات', space: 'بث الفضاء', scm: 'مركز الأمان', intel: 'موجز المعلومات', drawing: 'أدوات الرسم', remote: 'التحكم البعيد', arcgis: 'طبقات ArcGIS', directions: 'المسارات', search: 'البحث' },
   en: { layers: 'Layers', markets: 'Markets', alerts: 'Alerts', space: 'Space broadcast', scm: 'Security center', intel: 'Intel feed', drawing: 'Drawing tools', remote: 'World Remote', arcgis: 'ArcGIS layers', directions: 'Directions', search: 'Search' },
+} as const;
+
+const localizedPanelLabels = {
+  ...panelLabels,
+  es: { layers: 'Capas', markets: 'Mercados', alerts: 'Alertas', space: 'Emisión espacial', scm: 'Centro de seguridad', intel: 'Fuente de inteligencia', drawing: 'Herramientas de dibujo', remote: 'Control remoto', arcgis: 'Capas ArcGIS', directions: 'Rutas', search: 'Buscar' },
+  fr: { layers: 'Couches', markets: 'Marchés', alerts: 'Alertes', space: 'Diffusion spatiale', scm: 'Centre de sécurité', intel: 'Flux de renseignement', drawing: 'Outils de dessin', remote: 'Contrôle distant', arcgis: 'Couches ArcGIS', directions: 'Itinéraires', search: 'Rechercher' },
+  de: { layers: 'Ebenen', markets: 'Märkte', alerts: 'Warnungen', space: 'Weltraum-Stream', scm: 'Sicherheitszentrum', intel: 'Nachrichten-Feed', drawing: 'Zeichenwerkzeuge', remote: 'Fernsteuerung', arcgis: 'ArcGIS-Ebenen', directions: 'Routen', search: 'Suche' },
+  tr: { layers: 'Katmanlar', markets: 'Piyasalar', alerts: 'Uyarılar', space: 'Uzay yayını', scm: 'Güvenlik merkezi', intel: 'İstihbarat akışı', drawing: 'Çizim araçları', remote: 'Uzaktan kontrol', arcgis: 'ArcGIS katmanları', directions: 'Rotalar', search: 'Ara' },
 } as const;
 
 const guide = {
@@ -84,8 +100,8 @@ const guide = {
 
 export default function SettingsPanel({ open, onClose, language, setLanguage, theme, setTheme, background, setBackground, soundEnabled, setSoundEnabled, visualOptions, setVisualOptions, pwaInstalled, panelVisibility, setPanelVisibility, onResetPanels }: SettingsPanelProps) {
   const legacyLanguage = language === 'ar' ? 'ar' : 'en';
-  const t = copy[legacyLanguage];
-  const labels = panelLabels[legacyLanguage];
+  const t = localizedCopy[language];
+  const labels = localizedPanelLabels[language];
   const panels = Object.keys(labels) as Array<keyof typeof labels>;
   const steps = guide[legacyLanguage];
   const setVisual = (key: keyof VisualOptions, value: boolean) => setVisualOptions({ ...visualOptions, [key]: value });
@@ -98,8 +114,8 @@ export default function SettingsPanel({ open, onClose, language, setLanguage, th
 
             <section className="oculix-settings-section"><h3><Palette size={15} />{t.appearance}</h3>
               <div className="oculix-settings-row"><span><Languages size={15} />{t.language}</span><div className="oculix-language-grid">{LANGUAGE_OPTIONS.map(option => <button key={option.id} type="button" dir="ltr" className={language === option.id ? 'is-selected' : ''} onClick={() => setLanguage(option.id)} title={option.english}>{option.native}</button>)}</div></div>
-              <div className="oculix-settings-row oculix-settings-theme-row"><span><Moon size={15} />{t.theme}</span><div className="oculix-theme-grid">{themeOptions.map(option => <button key={option.id} type="button" className={theme === option.id ? 'is-selected' : ''} onClick={() => setTheme(option.id)}>{language === 'ar' ? option.ar : option.en}</button>)}</div></div>
-              <div className="oculix-settings-row oculix-settings-theme-row"><span><Palette size={15} />{language === 'ar' ? 'الخلفية' : 'Background'}</span><div className="oculix-theme-grid">{BACKGROUND_OPTIONS.map(option => <button key={option.id} type="button" className={background === option.id ? 'is-selected' : ''} onClick={() => setBackground(option.id)}>{language === 'ar' ? option.ar : option.en}</button>)}</div></div>
+              <div className="oculix-settings-row oculix-settings-theme-row"><span><Moon size={15} />{t.theme}</span><div className="oculix-theme-grid">{themeOptions.map(option => <button key={option.id} type="button" className={theme === option.id ? 'is-selected' : ''} onClick={() => setTheme(option.id)}>{option[language]}</button>)}</div></div>
+              <div className="oculix-settings-row oculix-settings-theme-row"><span><Palette size={15} />{{ ar: 'الخلفية', en: 'Background', es: 'Fondo', fr: 'Arrière-plan', de: 'Hintergrund', tr: 'Arka plan' }[language]}</span><div className="oculix-theme-grid">{BACKGROUND_OPTIONS.map(option => <button key={option.id} type="button" className={background === option.id ? 'is-selected' : ''} onClick={() => setBackground(option.id)}>{option[language]}</button>)}</div></div>
               <div className="oculix-settings-row"><span>{soundEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}{t.audio}</span><button type="button" className={`oculix-toggle ${soundEnabled ? 'is-on' : ''}`} onClick={() => setSoundEnabled(!soundEnabled)}><i />{soundEnabled ? t.enabled : t.disabled}</button></div>
               <div className="oculix-settings-row"><span><Zap size={15} />{t.motion}</span><button type="button" className={`oculix-toggle ${visualOptions.reducedMotion ? 'is-on' : ''}`} onClick={() => setVisual('reducedMotion', !visualOptions.reducedMotion)}><i />{visualOptions.reducedMotion ? t.reduced : t.enabled}</button></div>
               <div className="oculix-settings-row"><span><Eye size={15} />{t.effects}</span><div className="oculix-mini-options"><button type="button" className={visualOptions.grid ? 'is-selected' : ''} onClick={() => setVisual('grid', !visualOptions.grid)}>{t.grid}</button><button type="button" className={visualOptions.scanlines ? 'is-selected' : ''} onClick={() => setVisual('scanlines', !visualOptions.scanlines)}>{t.scanlines}</button><button type="button" className={visualOptions.ticker ? 'is-selected' : ''} onClick={() => setVisual('ticker', !visualOptions.ticker)}>{t.ticker}</button><button type="button" className={visualOptions.ambient ? 'is-selected' : ''} onClick={() => setVisual('ambient', !visualOptions.ambient)}>{t.ambient}</button></div></div>
